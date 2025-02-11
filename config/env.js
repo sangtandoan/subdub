@@ -1,6 +1,9 @@
 import { config } from "dotenv"
 
+console.log(process.cwd())
+// path = process.cwd() + ".env.development.local"
 config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` })
 
-export const { PORT, NODE_ENV } = process.env
+console.log(process.env.DB_URI)
+export const { PORT, DB_URI, NODE_ENV } = process.env
 
