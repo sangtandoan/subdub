@@ -1,7 +1,7 @@
-import { Router } from "express"
+import { Router } from "express";
+import { signUp } from "../controllers/auth.controller.js";
 
-const authRouter = Router()
-
+const authRouter = Router();
 
 // authRouter.post("/sign-in", async (req, res, next) => {
 //     try {
@@ -14,25 +14,19 @@ const authRouter = Router()
 
 // HOF to handle throw, unhandled, syntax errors that does not call next()
 const catchErrors = (fn) => {
-    return function (req, res, next) {
-        fn(req, res, next).catch(next)
-    }
-}
-
-authRouter.get("/", catchErrors(async (req, res) => {
-    throw new Error("Test catch errors")
-}))
+	return (req, res, next) => {
+		return fn(req, res, next).catch(next);
+	};
+};
 
 authRouter.post("/sign-in", (req, res) => {
-    res.send({ title: "Sign-in" })
-})
+	res.send({ title: "Sign-in" });
+});
 
 authRouter.post("/sign-out", (req, res) => {
-    res.send({ title: "Sign-out" })
-})
+	res.send({ title: "Sign-out" });
+});
 
-authRouter.post("/sign-up", (req, res) => {
-    res.send("Sign-up")
-})
+authRouter.post("/sign-up", catchErrors(signUp));
 
-export default authRouter
+export default authRouter;
