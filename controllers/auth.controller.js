@@ -13,7 +13,7 @@ export const signUp = async (req, res, next) => {
         const { name, email, password } = req.body;
 
         // Check if user exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email }).lean();
         if (existingUser) {
             const error = new Error("User already exists!");
             error.statusCode = 409;
@@ -27,7 +27,7 @@ export const signUp = async (req, res, next) => {
         const newUsers = await User.create(
             [{ name, email, password: hashedPassword }],
             { session },
-        );
+        ).lean();
 
         // Create access token
         const token = jwt.sign({ id: newUsers[0]._id }, JWT_SECRET, {
@@ -51,4 +51,36 @@ export const signUp = async (req, res, next) => {
 
         next(error);
     }
+};
+
+export const signIn = async (req, res) => {
+    const { email, password } = req.body;
+
+    // Check user exists
+    const existingUser = await User.findOne({ email }).lean();
+    if (!existingUser) {
+        const error = new Error("User not found!");
+        error.statusCode = 404;
+
+        throw error;
+    }
+
+    if (!bcrypt.compareSync(password, existingUser.password)) {
+        const error = new Error("Invalid password");
+        error.statusCode = 401;
+
+        throw error;
+    }
+
+    const token = jwt.sign({ id: existingUser._id }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRE_TIME,
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Login successfully!",
+        data: {
+            token,
+        },
+    });
 };
