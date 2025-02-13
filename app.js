@@ -5,6 +5,7 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import router from "./routes/index.js";
+import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 
 const app = express();
 // Using middlewares
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(compression());
+app.use(arcjetMiddleware);
 
 app.use("/api/v1", router);
 
@@ -20,11 +22,11 @@ app.use("/api/v1", router);
 app.use(errorMiddleware);
 
 app.listen(PORT, async () => {
-    console.log(
-        `Subscription Tracker API is running on http://localhost:${PORT}`,
-    );
+	console.log(
+		`Subscription Tracker API is running on http://localhost:${PORT}`,
+	);
 
-    await connectToDatabase();
+	await connectToDatabase();
 });
 
 export default app;
