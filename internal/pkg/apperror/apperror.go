@@ -20,6 +20,7 @@ var (
 type AppError struct {
 	Msg        any
 	StatusCode int
+	Success    bool
 }
 
 type ValidateError struct {
@@ -35,6 +36,7 @@ func NewAppError(statusCode int, msg any) *AppError {
 	return &AppError{
 		StatusCode: statusCode,
 		Msg:        msg,
+		Success:    false,
 	}
 }
 

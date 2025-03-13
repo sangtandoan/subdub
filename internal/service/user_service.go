@@ -50,7 +50,7 @@ func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*GetUserRespon
 
 type (
 	CreateUserRequest struct {
-		Email    string `json:"email,omitempty"    validate:"email,min=30"`
+		Email    string `json:"email,omitempty"    validate:"email"`
 		Password string `json:"password,omitempty" validate:"min=3,max=20"`
 	}
 

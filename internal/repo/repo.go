@@ -8,11 +8,13 @@ import (
 const QueryTimeOut = time.Second * 10
 
 type Repo struct {
-	User UserRepo
+	User         UserRepo
+	Subscription SubscriptionRepo
 }
 
 func NewRepo(db *sql.DB) *Repo {
 	return &Repo{
-		User: NewUserRepo(db),
+		User:         NewUserRepo(db),
+		Subscription: NewSubsciptionRepo(db),
 	}
 }

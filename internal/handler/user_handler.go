@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
 )
@@ -40,7 +41,7 @@ func (h *userHandler) CreateUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": res})
+	c.JSON(http.StatusOK, response.NewAppResponse("created user successfylly", res))
 }
 
 func (h *userHandler) GetUserHandler(c *gin.Context) {
@@ -57,5 +58,5 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": res})
+	c.JSON(http.StatusOK, response.NewAppResponse("get user successfylly", res))
 }

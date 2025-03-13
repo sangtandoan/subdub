@@ -22,7 +22,7 @@ func ErrorMiddleware(c *gin.Context) {
 				appError = apperror.ErrInternalServerError
 			}
 
-			c.JSON(appError.StatusCode, gin.H{"error": appError.Msg})
+			c.JSON(appError.StatusCode, gin.H{"success": appError.Success, "errors": appError.Msg})
 			return
 		}
 	}
