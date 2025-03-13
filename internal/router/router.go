@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
+	"github.com/sangtandoan/subscription_tracker/internal/middlewares"
 )
 
 type router struct {
@@ -20,6 +21,8 @@ func (r *router) Setup() http.Handler {
 
 	api := g.Group("/api")
 	{
+		api.Use(middlewares.ErrorMiddleware)
+
 		v1 := api.Group("/v1")
 		r.setupUserRoutes(v1)
 	}

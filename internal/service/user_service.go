@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,8 +50,8 @@ func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*GetUserRespon
 
 type (
 	CreateUserRequest struct {
-		Email    string `json:"email,omitempty"`
-		Password string `json:"password,omitempty"`
+		Email    string `json:"email,omitempty"    validate:"email,min=30"`
+		Password string `json:"password,omitempty" validate:"min=3,max=20"`
 	}
 
 	CreateUserResponse struct {
@@ -74,7 +75,7 @@ func (s *userService) CreateUser(
 	}
 
 	if existed != nil {
-		return nil, err
+		return nil, apperror.ErrExisted
 	}
 
 	// hash password

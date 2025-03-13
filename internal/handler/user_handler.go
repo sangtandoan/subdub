@@ -6,15 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
 )
 
 type userHandler struct {
 	s service.UserService
+	v validator.Validator
 }
 
-func NewUserHandler(s service.UserService) *userHandler {
-	return &userHandler{s}
+func NewUserHandler(s service.UserService, v validator.Validator) *userHandler {
+	return &userHandler{s, v}
 }
 
 func (h *userHandler) CreateUserHandler(c *gin.Context) {
@@ -22,12 +24,19 @@ func (h *userHandler) CreateUserHandler(c *gin.Context) {
 
 	err := c.ShouldBind(&req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "json format invalid"})
+		_ = c.Error(apperror.ErrInvalidJSON)
+		return
+	}
+
+	err = h.v.Validate(req)
+	if err != nil {
+		_ = c.Error(err)
+		return
 	}
 
 	res, err := h.s.CreateUser(c.Request.Context(), &req)
 	if err != nil {
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 
@@ -38,12 +47,14 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 	userIDString := c.Param("id")
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
-		apperror.WriteError(c, err)
+		_ = c.Error(apperror.ErrInvalidJSON)
+		return
 	}
 
 	res, err := h.s.GetUser(c.Request.Context(), userID)
 	if err != nil {
-		apperror.WriteError(c, err)
+		_ = c.Error(apperror.ErrInvalidJSON)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": res})

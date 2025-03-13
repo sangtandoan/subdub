@@ -6,6 +6,7 @@ import (
 	"github.com/sangtandoan/subscription_tracker/internal/config"
 	"github.com/sangtandoan/subscription_tracker/internal/db"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 	"github.com/sangtandoan/subscription_tracker/internal/router"
 	"github.com/sangtandoan/subscription_tracker/internal/server"
@@ -31,7 +32,9 @@ func main() {
 
 	service := service.NewService(repo)
 
-	handler := handler.NewHandler(service)
+	validator := validator.NewAppValidator()
+
+	handler := handler.NewHandler(service, validator)
 
 	router := router.NewRouter(handler)
 
