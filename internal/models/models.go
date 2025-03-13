@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -30,7 +29,6 @@ type SubscriptionTime time.Time
 
 func (st *SubscriptionTime) UnmarshalJSON(b []byte) error {
 	s := string(b)
-	fmt.Println(s)
 
 	// get rid of "" b/c the string will contains this
 	s = strings.Trim(s, `"`)

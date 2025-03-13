@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
@@ -50,16 +52,17 @@ func (h *subscriptionHandler) CreateSubscriptionHandler(c *gin.Context) {
 		return
 	}
 
-	// userID, exists := c.Get("userID")
-	// if !exists {
-	// 	_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "can not find userID in context"))
-	// 	return
-	// }
+	userID, exists := c.Get(authenticator.SubClaim)
+	if !exists {
+		_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "can not find userID in context"))
+		return
+	}
 
-	// req.UserID = userID.(uuid.UUID)
-	req.UserID, err = uuid.Parse("97182b33-fe85-11ef-bc3e-902e1685779a")
+	// uuid.UUID is not string
+	// []byte is not string
+	req.UserID, err = uuid.Parse(userID.(string))
 	if err != nil {
-		_ = c.Error(err)
+		_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "can not parse to uuid"))
 		return
 	}
 

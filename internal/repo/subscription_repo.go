@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -109,7 +108,6 @@ func (repo *subscriptionRepo) CreateSubscription(
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOut)
 	defer cancel()
 
-	fmt.Println(arg.UserID)
 	row := repo.db.QueryRowContext(
 		ctx,
 		query,

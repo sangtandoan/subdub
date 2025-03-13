@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/config"
 	"github.com/sangtandoan/subscription_tracker/internal/db"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
@@ -30,14 +31,19 @@ func main() {
 
 	repo := repo.NewRepo(db)
 
-	service := service.NewService(repo)
+	authenticator, err := authenticator.NewJWTAuthenticator(cfg.Authenticator)
+	if err != nil {
+		panic(err)
+	}
+
+	service := service.NewService(repo, authenticator)
 
 	validator := validator.NewAppValidator()
 
 	handler := handler.NewHandler(service, validator)
 
-	router := router.NewRouter(handler)
+	router := router.NewRouter(handler, authenticator)
 
-	srv := server.NewServer(":8080", router.Setup())
+	srv := server.NewServer(cfg.Server.Addr, router.Setup())
 	srv.Run()
 }

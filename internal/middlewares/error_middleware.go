@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
@@ -19,11 +21,19 @@ func ErrorMiddleware(c *gin.Context) {
 			case validator.ValidationErrors:
 				appError = apperror.HandleValidateErrors(e)
 			default:
-				appError = apperror.ErrInternalServerError
+				appError = handleDefaultError(e)
 			}
 
 			c.JSON(appError.StatusCode, gin.H{"success": appError.Success, "errors": appError.Msg})
 			return
 		}
 	}
+}
+
+func handleDefaultError(err error) *apperror.AppError {
+	if strings.Contains(err.Error(), "token is expired") {
+		return apperror.ErrTokenExpired
+	}
+
+	return apperror.ErrInternalServerError
 }

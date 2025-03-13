@@ -1,7 +1,6 @@
 package enums
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -33,7 +32,6 @@ func ParseString2Duration(s string) (Duration, error) {
 }
 
 func (d *Duration) MarshalJSON() ([]byte, error) {
-	fmt.Println(d.String())
 	return []byte(`"` + d.String() + `"`), nil
 }
 

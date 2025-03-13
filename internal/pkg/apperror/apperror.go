@@ -14,7 +14,9 @@ var (
 		http.StatusInternalServerError,
 		"an unexpected error occured",
 	)
-	ErrExisted = NewAppError(http.StatusBadRequest, "resource has already existed")
+	ErrExisted      = NewAppError(http.StatusBadRequest, "resource has already existed")
+	ErrUnAuthorized = NewAppError(http.StatusUnauthorized, "user unauthorized")
+	ErrTokenExpired = NewAppError(http.StatusUnauthorized, "token is expired")
 )
 
 type AppError struct {

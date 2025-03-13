@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Db     *DBConfig
-	Server *ServerConfig
+	Db            *DBConfig
+	Server        *ServerConfig
+	Authenticator *AuthenticatorConfig
 }
 
 type DBConfig struct {
@@ -22,6 +23,11 @@ type DBConfig struct {
 	MaxIdleLifeTime string
 	MaxOpenConns    int
 	MaxIdleConns    int
+}
+
+type AuthenticatorConfig struct {
+	SecretKey   string
+	TokenExpiry string
 }
 
 type ServerConfig struct {
@@ -50,9 +56,15 @@ func LoadConfig() (*Config, error) {
 		Addr: getEnv("ADDR", ":8080"),
 	}
 
+	authenticatorConfig := &AuthenticatorConfig{
+		SecretKey:   getEnv("JWT_SECRET_KEY", "secret"),
+		TokenExpiry: getEnv("TOKEN_EXPIRY", "30m"),
+	}
+
 	return &Config{
-		Db:     dbConfig,
-		Server: srvConfig,
+		Db:            dbConfig,
+		Server:        srvConfig,
+		Authenticator: authenticatorConfig,
 	}, nil
 }
 
