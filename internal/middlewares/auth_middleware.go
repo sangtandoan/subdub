@@ -16,6 +16,7 @@ func AuthMiddleware(auth authenticator.Authenticator) gin.HandlerFunc {
 		bearerToken := c.GetHeader("Authorization")
 		if bearerToken == "" {
 			_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "no authorization header"))
+			c.Abort()
 			return
 		}
 
@@ -28,6 +29,7 @@ func AuthMiddleware(auth authenticator.Authenticator) gin.HandlerFunc {
 					"authorization header invalid format",
 				),
 			)
+			c.Abort()
 			return
 		}
 

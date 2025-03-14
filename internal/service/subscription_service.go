@@ -11,7 +11,7 @@ import (
 )
 
 type SubscriptionService interface {
-	GetAllSubscriptions(ctx context.Context) ([]*models.Subscription, error)
+	GetAllSubscriptions(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error)
 	CreateSubscription(
 		ctx context.Context,
 		req *CreateSubscriptionRequest,
@@ -28,8 +28,9 @@ func NewSubscriptionService(repo repo.SubscriptionRepo) *subscriptionService {
 
 func (s *subscriptionService) GetAllSubscriptions(
 	ctx context.Context,
+	userID uuid.UUID,
 ) ([]*models.Subscription, error) {
-	res, err := s.repo.GetAllSubscriptions(ctx)
+	res, err := s.repo.GetAllSubscriptions(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 type SubscriptionRepo interface {
-	GetAllSubscriptions(ctx context.Context) ([]*SubscriptionRow, error)
+	GetAllSubscriptions(ctx context.Context, userID uuid.UUID) ([]*SubscriptionRow, error)
 	CreateSubscription(
 		ctx context.Context,
 		arg CreateSubscriptionParams,
@@ -56,10 +56,11 @@ func (row *SubscriptionRow) MapToSubscriptionModel(sub *models.Subscription) err
 
 func (repo *subscriptionRepo) GetAllSubscriptions(
 	ctx context.Context,
+	userID uuid.UUID,
 ) ([]*SubscriptionRow, error) {
-	query := "SELECT id, user_id, name, start_date, end_date, duration FROM subscriptions"
+	query := "SELECT id, user_id, name, start_date, end_date, duration FROM subscriptions WHERE user_id = $1"
 
-	rows, err := repo.db.QueryContext(ctx, query)
+	rows, err := repo.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}

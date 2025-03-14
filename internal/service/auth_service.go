@@ -15,6 +15,7 @@ import (
 
 type AuthService interface {
 	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
+	CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error)
 }
 
 type authService struct {
@@ -70,5 +71,64 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		UserID:    existedUser.ID,
 		CreatedAt: existedUser.CreatedAt,
 		Token:     token,
+	}, nil
+}
+
+type (
+	CreateUserRequest struct {
+		Email    string `json:"email,omitempty"    validate:"email"`
+		Password string `json:"password,omitempty" validate:"min=3,max=20"`
+	}
+
+	CreateUserResponse struct {
+		CreatedAt time.Time `json:"created_at"`
+		ID        uuid.UUID `json:"id,omitempty"`
+		Email     string    `json:"email,omitempty"`
+		Password  string    `json:"password"`
+	}
+)
+
+func (s *authService) CreateUser(
+	ctx context.Context,
+	req *CreateUserRequest,
+) (*CreateUserResponse, error) {
+	// check if user exists
+	existed, err := s.userRepo.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+	}
+
+	if existed != nil {
+		return nil, apperror.ErrExisted
+	}
+
+	// hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	// generate userID
+	userID, err := uuid.NewUUID()
+	if err != nil {
+		return nil, err
+	}
+
+	createdUser, err := s.userRepo.CreateUser(ctx, &repo.CreateUserParams{
+		ID:       userID,
+		Email:    req.Email,
+		Password: string(hashedPassword),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateUserResponse{
+		ID:        createdUser.ID,
+		Email:     createdUser.Email,
+		CreatedAt: createdUser.CreatedAt,
+		Password:  createdUser.Password,
 	}, nil
 }

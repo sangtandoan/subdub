@@ -28,6 +28,7 @@ func (r *router) Setup() http.Handler {
 		v1 := api.Group("/v1")
 		r.setupAuthRoutes(v1)
 
+		// protected routes
 		v1.Use(middlewares.AuthMiddleware(r.auth))
 		r.setupUserRoutes(v1)
 		r.setupSubscriptionRoutes(v1)
@@ -40,21 +41,18 @@ func (r *router) setupUserRoutes(group *gin.RouterGroup) {
 	users := group.Group("/users")
 
 	users.GET("/:id", r.handler.User.GetUserHandler)
-	users.POST("", r.handler.User.CreateUserHandler)
 }
 
 func (r *router) setupSubscriptionRoutes(group *gin.RouterGroup) {
 	sub := group.Group("/subscriptions")
 
 	sub.POST("", r.handler.Subscription.CreateSubscriptionHandler)
-	sub.GET(
-		"",
-		r.handler.Subscription.GetAllSubscriptionsHandler,
-	)
+	sub.GET("", r.handler.Subscription.GetAllSubscriptionsHandler)
 }
 
 func (r *router) setupAuthRoutes(group *gin.RouterGroup) {
 	auth := group.Group("/auth")
 
 	auth.POST("/login", r.handler.Auth.LoginHandler)
+	auth.POST("/register", r.handler.Auth.CreateUserHandler)
 }

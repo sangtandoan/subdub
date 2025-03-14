@@ -10,6 +10,7 @@ import (
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
+	"github.com/sangtandoan/subscription_tracker/internal/utils"
 )
 
 type subscriptionHandler struct {
@@ -28,7 +29,13 @@ func NewSubscriptionHandler(
 }
 
 func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
-	res, err := h.s.GetAllSubscriptions(c.Request.Context())
+	userID, err := utils.GetUserIDFromContext(c)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res, err := h.s.GetAllSubscriptions(c.Request.Context(), userID)
 	if err != nil {
 		_ = c.Error(err)
 		return

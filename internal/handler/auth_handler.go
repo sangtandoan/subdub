@@ -42,3 +42,27 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.NewAppResponse("login successfully", res))
 }
+
+func (h *authHandler) CreateUserHandler(c *gin.Context) {
+	var req service.CreateUserRequest
+
+	err := c.ShouldBind(&req)
+	if err != nil {
+		_ = c.Error(apperror.ErrInvalidJSON)
+		return
+	}
+
+	err = h.v.Validate(req)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	res, err := h.s.CreateUser(c.Request.Context(), &req)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.NewAppResponse("created user successfylly", res))
+}

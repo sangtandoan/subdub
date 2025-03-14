@@ -17,6 +17,7 @@ var (
 	ErrExisted      = NewAppError(http.StatusBadRequest, "resource has already existed")
 	ErrUnAuthorized = NewAppError(http.StatusUnauthorized, "user unauthorized")
 	ErrTokenExpired = NewAppError(http.StatusUnauthorized, "token is expired")
+	ErrInvalidUUID  = NewAppError(http.StatusBadRequest, "invalid uuid format")
 )
 
 type AppError struct {

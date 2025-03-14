@@ -8,6 +8,7 @@ import (
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
 )
 
@@ -15,8 +16,8 @@ type userHandler struct {
 	s service.UserService
 }
 
-func NewUserHandler(s service.UserService) *userHandler {
-	return &userHandler{s}
+func NewUserHandler(s service.UserService, v validator.Validator) *userHandler {
+	return &userHandler{s, v}
 }
 
 func (h *userHandler) GetUserHandler(c *gin.Context) {

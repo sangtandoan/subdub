@@ -13,7 +13,7 @@ type Handler struct {
 
 func NewHandler(service *service.Service, validator validator.Validator) *Handler {
 	return &Handler{
-		User:         NewUserHandler(service.User, validator),
+		User:         NewUserHandler(service.User),
 		Subscription: NewSubscriptionHandler(service.Subscription, validator),
 		Auth:         NewAuthHandler(service.Auth, validator),
 	}
