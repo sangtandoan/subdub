@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at timestamp DEFAULT NOW()
 );
 
-CREATE TYPE duration AS ENUM ('monthly', '6 months', 'yearly');
+CREATE TYPE duration AS ENUM ('weekly', 'monthly', '6 months', 'yearly');
 
 CREATE TABLE IF NOT EXISTS subscriptions (
     id uuid PRIMARY KEY,

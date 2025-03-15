@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
+	"github.com/sangtandoan/subscription_tracker/internal/chrono"
 	"github.com/sangtandoan/subscription_tracker/internal/config"
 	"github.com/sangtandoan/subscription_tracker/internal/db"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
@@ -43,6 +44,9 @@ func main() {
 	handler := handler.NewHandler(service, validator)
 
 	router := router.NewRouter(handler, authenticator)
+
+	chrono := chrono.NewChrono(repo)
+	go chrono.ScheduleDailyTask(13, 48)
 
 	srv := server.NewServer(cfg.Server.Addr, router.Setup())
 	srv.Run()

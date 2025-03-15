@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -26,6 +27,28 @@ func NewSubscriptionHandler(
 		s,
 		v,
 	}
+}
+
+func (h *subscriptionHandler) GetSubscriptionsBeforeNumDays(c *gin.Context) {
+	numStr := c.Query("days")
+	if numStr == "" {
+		_ = c.Error(apperror.ErrInvalidJSON)
+		return
+	}
+
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	res, err := h.s.GetSubscriptionsBeforeNumDays(c.Request.Context(), num)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.NewAppResponse("ok", res))
 }
 
 func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {

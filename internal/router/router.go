@@ -47,7 +47,8 @@ func (r *router) setupSubscriptionRoutes(group *gin.RouterGroup) {
 	sub := group.Group("/subscriptions")
 
 	sub.POST("", r.handler.Subscription.CreateSubscriptionHandler)
-	sub.GET("", r.handler.Subscription.GetAllSubscriptionsHandler)
+	// sub.GET("", r.handler.Subscription.GetAllSubscriptionsHandler)
+	sub.GET("", r.handler.Subscription.GetSubscriptionsBeforeNumDays)
 }
 
 func (r *router) setupAuthRoutes(group *gin.RouterGroup) {

@@ -16,6 +16,7 @@ type SubscriptionRepo interface {
 		ctx context.Context,
 		arg CreateSubscriptionParams,
 	) (*SubscriptionRow, error)
+	GetSubscriptionsBeforeNumDays(ctx context.Context, num int) ([]*SubscriptionRow, error)
 }
 
 type subscriptionRepo struct {
@@ -87,8 +88,8 @@ func (repo *subscriptionRepo) GetAllSubscriptions(
 }
 
 type CreateSubscriptionParams struct {
-	StartDate models.SubscriptionTime
-	EndDate   models.SubscriptionTime
+	StartDate time.Time
+	EndDate   time.Time
 	Name      string
 	ID        uuid.UUID
 	UserID    uuid.UUID
@@ -134,4 +135,41 @@ func (repo *subscriptionRepo) CreateSubscription(
 	}
 
 	return &subcription, nil
+}
+
+func (repo *subscriptionRepo) GetSubscriptionsBeforeNumDays(
+	ctx context.Context,
+	num int,
+) ([]*SubscriptionRow, error) {
+	query := `
+		SELECT id, user_id, name, start_date, end_date, duration 
+		FROM subscriptions WHERE end_date <= $1 AND end_date + INTERVAL '1 day' >= $1
+	`
+
+	currentBeforeNumDays := time.Now().AddDate(0, 0, num)
+
+	rows, err := repo.db.QueryContext(ctx, query, currentBeforeNumDays)
+	if err != nil {
+		return nil, err
+	}
+
+	var subs []*SubscriptionRow
+	for rows.Next() {
+		var sub SubscriptionRow
+		err := rows.Scan(
+			&sub.ID,
+			&sub.UserID,
+			&sub.Name,
+			&sub.StartDate,
+			&sub.EndDate,
+			&sub.Duration,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		subs = append(subs, &sub)
+	}
+
+	return subs, nil
 }

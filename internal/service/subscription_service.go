@@ -16,6 +16,10 @@ type SubscriptionService interface {
 		ctx context.Context,
 		req *CreateSubscriptionRequest,
 	) (*models.Subscription, error)
+	GetSubscriptionsBeforeNumDays(
+		ctx context.Context,
+		num int,
+	) ([]*models.Subscription, error)
 }
 
 type subscriptionService struct {
@@ -24,6 +28,29 @@ type subscriptionService struct {
 
 func NewSubscriptionService(repo repo.SubscriptionRepo) *subscriptionService {
 	return &subscriptionService{repo}
+}
+
+func (s *subscriptionService) GetSubscriptionsBeforeNumDays(
+	ctx context.Context,
+	num int,
+) ([]*models.Subscription, error) {
+	subs, err := s.repo.GetSubscriptionsBeforeNumDays(ctx, num)
+	if err != nil {
+		return nil, err
+	}
+
+	var arr []*models.Subscription
+	for _, row := range subs {
+		var sub models.Subscription
+		err := row.MapToSubscriptionModel(&sub)
+		if err != nil {
+			return nil, err
+		}
+
+		arr = append(arr, &sub)
+	}
+
+	return arr, nil
 }
 
 func (s *subscriptionService) GetAllSubscriptions(
@@ -70,7 +97,7 @@ func (s *subscriptionService) CreateSubscription(
 	arg := repo.CreateSubscriptionParams{
 		ID:        id,
 		UserID:    req.UserID,
-		StartDate: req.StartDate,
+		StartDate: time.Time(req.StartDate),
 		EndDate:   endDate,
 		Name:      req.Name,
 		Duration:  req.Duration.String(),
@@ -92,17 +119,6 @@ func (s *subscriptionService) CreateSubscription(
 func calculateEndDate(
 	startDate models.SubscriptionTime,
 	duration enums.Duration,
-) models.SubscriptionTime {
-	var endDate time.Time
-
-	switch duration {
-	case enums.Monthly:
-		endDate = time.Time(startDate).AddDate(0, 1, 0)
-	case enums.SixMonths:
-		endDate = time.Time(startDate).AddDate(0, 6, 0)
-	case enums.Yearly:
-		endDate = time.Time(startDate).AddDate(1, 0, 0)
-	}
-
-	return models.SubscriptionTime(endDate)
+) time.Time {
+	return duration.AddDurationToTime(time.Time(startDate))
 }
