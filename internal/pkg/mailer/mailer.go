@@ -57,31 +57,11 @@ type MailTemplate struct {
 	Path    string
 }
 
-func (m *SMTPMailder) SendWithRetry(req *SendRequest, retries int) error {
-	for i := range retries {
-		err := m.Send(req)
-		if err != nil {
-			fmt.Printf("Failed to send email %d/%d times\n", i+1, retries)
-			fmt.Println(err)
-
-			if i != retries-1 {
-				time.Sleep(time.Second * time.Duration((i + 1))) // exponential backkoff
-			}
-			continue
-		}
-
-		fmt.Println("send email ok")
-		return nil
-	}
-
-	return apperror.ErrSendEmail
-}
-
-func (m *SMTPMailder) Send(req *SendRequest) error {
+func (m *SMTPMailder) processMessage(req *SendRequest) (*gomail.Message, error) {
 	// parse and check if data is right with template option
 	data, err := getData(req.Template, req.Data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// get template for template option
@@ -90,7 +70,7 @@ func (m *SMTPMailder) Send(req *SendRequest) error {
 	// get subject and body base on template to send email
 	err = parseTemplate(temp, data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	message := gomail.NewMessage()
@@ -98,6 +78,37 @@ func (m *SMTPMailder) Send(req *SendRequest) error {
 	message.SetHeader("To", req.To...)
 	message.SetHeader("Subject", temp.Subject)
 	message.SetBody("text/html", temp.Body)
+
+	return message, nil
+}
+
+func (m *SMTPMailder) SendWithRetry(req *SendRequest, retries int) error {
+	message, err := m.processMessage(req)
+	if err != nil {
+		return err
+	}
+
+	for i := range retries {
+		if err := m.dialer.DialAndSend(message); err != nil {
+			fmt.Println(err)
+
+			if i != retries-1 {
+				time.Sleep(time.Second * time.Duration((i + 1))) // exponential backkoff
+			}
+			continue
+		}
+		fmt.Println("send email ok")
+		return nil
+	}
+
+	return apperror.ErrSendEmail
+}
+
+func (m *SMTPMailder) Send(req *SendRequest) error {
+	message, err := m.processMessage(req)
+	if err != nil {
+		return err
+	}
 
 	if err := m.dialer.DialAndSend(message); err != nil {
 		return err
