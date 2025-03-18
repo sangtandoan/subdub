@@ -11,6 +11,7 @@ type Config struct {
 	Db            *DBConfig
 	Server        *ServerConfig
 	Authenticator *AuthenticatorConfig
+	Mailer        *MailerConfig
 }
 
 type DBConfig struct {
@@ -23,6 +24,14 @@ type DBConfig struct {
 	MaxIdleLifeTime string
 	MaxOpenConns    int
 	MaxIdleConns    int
+}
+
+type MailerConfig struct {
+	From     string
+	Host     string
+	Username string
+	Password string
+	Port     int
 }
 
 type AuthenticatorConfig struct {
@@ -52,19 +61,28 @@ func LoadConfig() (*Config, error) {
 		MaxIdleLifeTime: getEnv("DB_MAX_IDLE_LIFE_TIME", "10m"),
 	}
 
-	srvConfig := &ServerConfig{
-		Addr: getEnv("ADDR", ":8080"),
-	}
-
 	authenticatorConfig := &AuthenticatorConfig{
 		SecretKey:   getEnv("JWT_SECRET_KEY", "secret"),
 		TokenExpiry: getEnv("TOKEN_EXPIRY", "30m"),
+	}
+
+	mailerConfig := &MailerConfig{
+		From:     getEnv("MAIL_FROM", "sangvaminh11497@gmai.com"),
+		Host:     getEnv("MAIL_HOST", "smtp.gmail.com"),
+		Port:     getEnvAsInt("MAIL_PORT", 587),
+		Username: getEnv("MAIL_USERNAME", "sangvaminh11497@gmail.com"),
+		Password: getEnv("MAIL_PASSWORD", "bfqdywiibshdlevv"),
+	}
+
+	srvConfig := &ServerConfig{
+		Addr: getEnv("ADDR", ":8080"),
 	}
 
 	return &Config{
 		Db:            dbConfig,
 		Server:        srvConfig,
 		Authenticator: authenticatorConfig,
+		Mailer:        mailerConfig,
 	}, nil
 }
 

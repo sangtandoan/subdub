@@ -8,6 +8,7 @@ import (
 	"github.com/sangtandoan/subscription_tracker/internal/config"
 	"github.com/sangtandoan/subscription_tracker/internal/db"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/mailer"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/validator"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 	"github.com/sangtandoan/subscription_tracker/internal/router"
@@ -45,8 +46,10 @@ func main() {
 
 	router := router.NewRouter(handler, authenticator)
 
-	chrono := chrono.NewChrono(repo)
-	go chrono.ScheduleDailyTask(13, 48)
+	mailer := mailer.NewSMTPMailer(cfg.Mailer)
+
+	chrono := chrono.NewChrono(repo, mailer)
+	go chrono.ScheduleDailyTask(11, 29)
 
 	srv := server.NewServer(cfg.Server.Addr, router.Setup())
 	srv.Run()

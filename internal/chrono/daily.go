@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/mailer"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 )
 
@@ -18,10 +19,11 @@ type Chrono interface {
 type chrono struct {
 	subscriptionRepo repo.SubscriptionRepo
 	userRepo         repo.UserRepo
+	mailer           mailer.Mailer
 }
 
-func NewChrono(repo *repo.Repo) *chrono {
-	return &chrono{subscriptionRepo: repo.Subscription, userRepo: repo.User}
+func NewChrono(repo *repo.Repo, mailer mailer.Mailer) *chrono {
+	return &chrono{subscriptionRepo: repo.Subscription, userRepo: repo.User, mailer: mailer}
 }
 
 func (c *chrono) checkSubscriptionsDailyToSendEmail() {
@@ -53,7 +55,7 @@ func (c *chrono) querySubsAtSpecifyNumDays(
 	jobs := make(chan *repo.SubscriptionRow, 10)
 	done := make(chan int, 10)
 
-	c.generateWorkersPool(ctx, 3, jobs, done, errsCh)
+	c.generateWorkersPool(ctx, 3, num, jobs, done, errsCh)
 
 	for _, sub := range subs {
 		jobs <- sub
@@ -73,17 +75,19 @@ func (c *chrono) querySubsAtSpecifyNumDays(
 func (c *chrono) generateWorkersPool(
 	ctx context.Context,
 	wokers int,
+	numDays int,
 	jobs <-chan *repo.SubscriptionRow,
 	done chan<- int,
 	errsChn chan<- error,
 ) {
 	for range wokers {
-		go c.sendEmail(ctx, jobs, done, errsChn)
+		go c.sendEmail(ctx, numDays, jobs, done, errsChn)
 	}
 }
 
 func (c *chrono) sendEmail(
 	ctx context.Context,
+	numDays int,
 	jobs <-chan *repo.SubscriptionRow,
 	done chan<- int,
 	errsCh chan<- error,
@@ -97,6 +101,22 @@ func (c *chrono) sendEmail(
 		}
 
 		fmt.Printf("sending email to %s\n", user.Email)
+		sendEmailReq := mailer.SendRequest{
+			To:       []string{user.Email},
+			Template: mailer.RemindTemplate,
+			Data: mailer.RemindData{
+				Name:        job.Name,
+				NumDays:     numDays,
+				Email:       user.Email,
+				RenewalDate: job.EndDate,
+			},
+		}
+
+		err = c.mailer.SendWithRetry(&sendEmailReq, 3)
+		if err != nil {
+			errsCh <- err
+		}
+
 		done <- 1
 	}
 }

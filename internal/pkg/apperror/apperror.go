@@ -14,10 +14,15 @@ var (
 		http.StatusInternalServerError,
 		"an unexpected error occured",
 	)
-	ErrExisted      = NewAppError(http.StatusBadRequest, "resource has already existed")
-	ErrUnAuthorized = NewAppError(http.StatusUnauthorized, "user unauthorized")
-	ErrTokenExpired = NewAppError(http.StatusUnauthorized, "token is expired")
-	ErrInvalidUUID  = NewAppError(http.StatusBadRequest, "invalid uuid format")
+	ErrExisted          = NewAppError(http.StatusBadRequest, "resource has already existed")
+	ErrUnAuthorized     = NewAppError(http.StatusUnauthorized, "user unauthorized")
+	ErrTokenExpired     = NewAppError(http.StatusUnauthorized, "token is expired")
+	ErrInvalidUUID      = NewAppError(http.StatusBadRequest, "invalid uuid format")
+	ErrInvalidEmailData = NewAppError(
+		http.StatusBadRequest,
+		"invalid email data with template option",
+	)
+	ErrSendEmail = NewAppError(http.StatusInternalServerError, "could not send email")
 )
 
 type AppError struct {

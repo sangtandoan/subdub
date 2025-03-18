@@ -25,6 +25,7 @@ type Subscription struct {
 }
 
 // create this type to enable marshal and unmarshal from format "YYYY-mm-dd"
+// if using normal time.Time, when unmarshal will occur error
 type SubscriptionTime time.Time
 
 func (st *SubscriptionTime) UnmarshalJSON(b []byte) error {
@@ -33,12 +34,14 @@ func (st *SubscriptionTime) UnmarshalJSON(b []byte) error {
 	// get rid of "" b/c the string will contains this
 	s = strings.Trim(s, `"`)
 
-	time, err := time.Parse("2006-01-02", s)
+	// string -> time : time.Parse
+	// time -> string: time.Format
+	normalTime, err := time.Parse("2006-01-02", s)
 	if err != nil {
 		return err
 	}
 
-	*st = SubscriptionTime(time)
+	*st = SubscriptionTime(normalTime)
 	return nil
 }
 

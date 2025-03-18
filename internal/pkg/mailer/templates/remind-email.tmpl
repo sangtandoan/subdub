@@ -1,0 +1,7 @@
+{{define "subject"}} {{.Name}} Subscription Remind {{end}}
+
+{{define "body"}}
+<h3> Hi {{.Email}} </h3>
+<p>Your {{.Name}} subscription will end in {{.NumDays}} days at {{.RenewalDate.Format "2006-01-02"}}.</p>
+<p> Please cancel it before renewal.</p>
+{{end}}
