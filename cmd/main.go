@@ -38,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	service := service.NewService(repo, authenticator)
+	service := service.NewService(repo, authenticator, cfg)
 
 	validator := validator.NewAppValidator()
 

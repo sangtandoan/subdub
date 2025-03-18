@@ -20,18 +20,22 @@ func NewRouter(handler *handler.Handler, auth authenticator.Authenticator) *rout
 
 func (r *router) Setup() http.Handler {
 	g := gin.Default()
+	g.LoadHTMLGlob("templates/*")
 
 	api := g.Group("/api")
 	{
 		api.Use(middlewares.ErrorMiddleware)
 
 		v1 := api.Group("/v1")
-		r.setupAuthRoutes(v1)
+		{
+			r.setupOAuthRoutes(v1)
+			r.setupAuthRoutes(v1)
 
-		// protected routes
-		v1.Use(middlewares.AuthMiddleware(r.auth))
-		r.setupUserRoutes(v1)
-		r.setupSubscriptionRoutes(v1)
+			// protected routes
+			v1.Use(middlewares.AuthMiddleware(r.auth))
+			r.setupUserRoutes(v1)
+			r.setupSubscriptionRoutes(v1)
+		}
 	}
 
 	return g
@@ -55,5 +59,13 @@ func (r *router) setupAuthRoutes(group *gin.RouterGroup) {
 	auth := group.Group("/auth")
 
 	auth.POST("/login", r.handler.Auth.LoginHandler)
-	auth.POST("/register", r.handler.Auth.CreateUserHandler)
+	auth.POST("/register", r.handler.Auth.RegisterHandler)
+}
+
+func (r *router) setupOAuthRoutes(group *gin.RouterGroup) {
+	oauth2 := group.Group("/oauth2")
+
+	oauth2.GET("", r.handler.OAuth2.SignInWithOAuth)
+	oauth2.GET("callback", r.handler.OAuth2.CallbackHandler)
+	oauth2.GET("login", r.handler.OAuth2.Login)
 }

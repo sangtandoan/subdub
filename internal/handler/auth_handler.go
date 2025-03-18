@@ -43,8 +43,8 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response.NewAppResponse("login successfully", res))
 }
 
-func (h *authHandler) CreateUserHandler(c *gin.Context) {
-	var req service.CreateUserRequest
+func (h *authHandler) RegisterHandler(c *gin.Context) {
+	var req service.RegisterRequest
 
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -58,7 +58,7 @@ func (h *authHandler) CreateUserHandler(c *gin.Context) {
 		return
 	}
 
-	res, err := h.s.CreateUser(c.Request.Context(), &req)
+	res, err := h.s.Register(c.Request.Context(), &req)
 	if err != nil {
 		_ = c.Error(err)
 		return

@@ -15,7 +15,7 @@ import (
 
 type AuthService interface {
 	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
-	CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error)
+	Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error)
 }
 
 type authService struct {
@@ -75,12 +75,12 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 }
 
 type (
-	CreateUserRequest struct {
+	RegisterRequest struct {
 		Email    string `json:"email,omitempty"    validate:"email"`
 		Password string `json:"password,omitempty" validate:"min=3,max=20"`
 	}
 
-	CreateUserResponse struct {
+	RegisterResponse struct {
 		CreatedAt time.Time `json:"created_at"`
 		ID        uuid.UUID `json:"id,omitempty"`
 		Email     string    `json:"email,omitempty"`
@@ -88,10 +88,10 @@ type (
 	}
 )
 
-func (s *authService) CreateUser(
+func (s *authService) Register(
 	ctx context.Context,
-	req *CreateUserRequest,
-) (*CreateUserResponse, error) {
+	req *RegisterRequest,
+) (*RegisterResponse, error) {
 	// check if user exists
 	existed, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *authService) CreateUser(
 		return nil, err
 	}
 
-	return &CreateUserResponse{
+	return &RegisterResponse{
 		ID:        createdUser.ID,
 		Email:     createdUser.Email,
 		CreatedAt: createdUser.CreatedAt,

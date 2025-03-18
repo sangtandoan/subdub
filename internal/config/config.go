@@ -5,12 +5,15 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 type Config struct {
 	Db            *DBConfig
 	Server        *ServerConfig
 	Authenticator *AuthenticatorConfig
+	GoogleOAuth   *oauth2.Config
 	Mailer        *MailerConfig
 }
 
@@ -74,6 +77,14 @@ func LoadConfig() (*Config, error) {
 		Password: getEnv("MAIL_PASSWORD", ""),
 	}
 
+	googleOAuthConfig := &oauth2.Config{
+		ClientID:     getEnv("GOOGLE_CLIENT", ""),
+		ClientSecret: getEnv("GOOGLE_SECRET", ""),
+		RedirectURL:  "http://localhost:8080/api/v1/oauth2/callback",
+		Scopes:       []string{"email"},
+		Endpoint:     google.Endpoint,
+	}
+
 	srvConfig := &ServerConfig{
 		Addr: getEnv("ADDR", ":8080"),
 	}
@@ -83,6 +94,7 @@ func LoadConfig() (*Config, error) {
 		Server:        srvConfig,
 		Authenticator: authenticatorConfig,
 		Mailer:        mailerConfig,
+		GoogleOAuth:   googleOAuthConfig,
 	}, nil
 }
 
