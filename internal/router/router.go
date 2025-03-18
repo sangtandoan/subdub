@@ -25,6 +25,7 @@ func (r *router) Setup() http.Handler {
 	api := g.Group("/api")
 	{
 		api.Use(middlewares.ErrorMiddleware)
+		api.Use(middlewares.GZipMiddleware)
 
 		v1 := api.Group("/v1")
 		{
@@ -51,8 +52,8 @@ func (r *router) setupSubscriptionRoutes(group *gin.RouterGroup) {
 	sub := group.Group("/subscriptions")
 
 	sub.POST("", r.handler.Subscription.CreateSubscriptionHandler)
-	// sub.GET("", r.handler.Subscription.GetAllSubscriptionsHandler)
-	sub.GET("", r.handler.Subscription.GetSubscriptionsBeforeNumDays)
+	sub.GET("", r.handler.Subscription.GetAllSubscriptionsHandler)
+	// sub.GET("", r.handler.Subscription.GetSubscriptionsBeforeNumDays)
 }
 
 func (r *router) setupAuthRoutes(group *gin.RouterGroup) {

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,20 +26,20 @@ func (h *oAuth2Handler) Login(c *gin.Context) {
 
 func (h *oAuth2Handler) SignInWithOAuth(c *gin.Context) {
 	url := h.service.GenerateURL(c.Request.Context())
-
+	fmt.Println(url)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (h *oAuth2Handler) CallbackHandler(c *gin.Context) {
 	state := c.Query("state")
 	if state == "" {
-		c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
+		_ = c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
 		return
 	}
 
 	code := c.Query("code")
 	if state == "" {
-		c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
+		_ = c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
 		return
 	}
 
@@ -49,7 +50,7 @@ func (h *oAuth2Handler) CallbackHandler(c *gin.Context) {
 
 	res, err := h.service.Callback(c.Request.Context(), req)
 	if err != nil {
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 

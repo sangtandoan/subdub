@@ -36,10 +36,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	CreatedAt time.Time
-	Token     string
-	UserID    uuid.UUID
-	Email     string
+	CreatedAt time.Time `json:"created_at"`
+	Token     string    `json:"token,omitempty"`
+	UserID    uuid.UUID `json:"user_id,omitempty"`
+	Email     string    `json:"email,omitempty"`
 }
 
 func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
