@@ -71,7 +71,7 @@ func LoadConfig() (*Config, error) {
 		Host:     getEnv("MAIL_HOST", "smtp.gmail.com"),
 		Port:     getEnvAsInt("MAIL_PORT", 587),
 		Username: getEnv("MAIL_USERNAME", "sangvaminh11497@gmail.com"),
-		Password: getEnv("MAIL_PASSWORD", "bfqdywiibshdlevv"),
+		Password: getEnv("MAIL_PASSWORD", ""),
 	}
 
 	srvConfig := &ServerConfig{
