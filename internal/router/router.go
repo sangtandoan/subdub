@@ -25,7 +25,7 @@ func (r *router) Setup() http.Handler {
 	api := g.Group("/api")
 	{
 		api.Use(middlewares.ErrorMiddleware)
-		api.Use(middlewares.GZipMiddleware)
+		// api.Use(middlewares.GZipMiddleware)
 
 		v1 := api.Group("/v1")
 		{
@@ -61,6 +61,8 @@ func (r *router) setupAuthRoutes(group *gin.RouterGroup) {
 
 	auth.POST("/login", r.handler.Auth.LoginHandler)
 	auth.POST("/register", r.handler.Auth.RegisterHandler)
+	auth.POST("/logout", r.handler.Auth.LogoutHandler)
+	auth.POST("/renew", r.handler.Auth.TokenRenewHandler)
 }
 
 func (r *router) setupOAuthRoutes(group *gin.RouterGroup) {

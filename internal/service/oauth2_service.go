@@ -38,8 +38,8 @@ type CallBackRequest struct {
 }
 
 type CallbackResponse struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
 func (s *googleOAuth2Service) Callback(

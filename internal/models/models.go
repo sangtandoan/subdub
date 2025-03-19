@@ -24,6 +24,15 @@ type Subscription struct {
 	Duration  enums.Duration   `json:"duration,omitempty"`
 }
 
+type Session struct {
+	CreatedAt    time.Time
+	ExpiresAt    time.Time
+	ID           uuid.UUID
+	RefreshToken string
+	UserEmail    string
+	IsRevoked    bool
+}
+
 // create this type to enable marshal and unmarshal from format "YYYY-mm-dd"
 // if using normal time.Time, when unmarshal will occur error
 type SubscriptionTime time.Time

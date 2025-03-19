@@ -19,8 +19,9 @@ const (
 
 // JWT implementation of Authenticator interface
 type jwtAuthenticator struct {
-	secretKey   string
-	tokenExpiry time.Duration
+	secretKey          string
+	tokenExpiry        time.Duration
+	refreshTokenExpiry time.Duration
 }
 
 func NewJWTAuthenticator(cfg *config.AuthenticatorConfig) (*jwtAuthenticator, error) {
@@ -30,8 +31,9 @@ func NewJWTAuthenticator(cfg *config.AuthenticatorConfig) (*jwtAuthenticator, er
 	}
 
 	return &jwtAuthenticator{
-		secretKey:   cfg.SecretKey,
-		tokenExpiry: tokenExpiry,
+		secretKey:          cfg.SecretKey,
+		tokenExpiry:        tokenExpiry,
+		refreshTokenExpiry: RefreshTokenExpiry,
 	}, nil
 }
 
@@ -46,6 +48,26 @@ func (auth *jwtAuthenticator) GenerateToken(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(auth.secretKey))
+}
+
+func (auth *jwtAuthenticator) GenerateRefreshToken(
+	user *models.User,
+	sessionID string,
+) (string, time.Time, error) {
+	expiresAt := time.Now().Add(auth.refreshTokenExpiry)
+
+	claims := jwt.MapClaims{
+		SubClaim:   sessionID,
+		EmailClaim: user.Email,
+		// exp need convert to unix
+		ExpClaim: expiresAt.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenStr, err := token.SignedString([]byte(auth.secretKey))
+
+	return tokenStr, expiresAt, err
 }
 
 func (auth *jwtAuthenticator) VerifyToken(token string) (*jwt.Token, error) {

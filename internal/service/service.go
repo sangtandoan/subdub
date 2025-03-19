@@ -21,7 +21,7 @@ func NewService(
 	return &Service{
 		User:         NewUserService(repo.User),
 		Subscription: NewSubscriptionService(repo.Subscription),
-		Auth:         NewAuthService(repo.User, authenticator),
+		Auth:         NewAuthService(repo.User, repo.Session, authenticator),
 		OAuth2:       NewGoogleOAuth2Service(config.GoogleOAuth),
 	}
 }

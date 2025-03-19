@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
@@ -16,18 +17,22 @@ import (
 type AuthService interface {
 	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
 	Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error)
+	Logout(ctx context.Context, refreshToken string) error
+	TokenRenew(ctx context.Context, refreshToken string) (*TokenRenewResponse, error)
 }
 
 type authService struct {
 	userRepo      repo.UserRepo
+	sessionRepo   repo.SessionRepo
 	authenticator authenticator.Authenticator
 }
 
 func NewAuthService(
 	userRepo repo.UserRepo,
+	sessionRepo repo.SessionRepo,
 	authenticator authenticator.Authenticator,
 ) *authService {
-	return &authService{userRepo, authenticator}
+	return &authService{userRepo, sessionRepo, authenticator}
 }
 
 type LoginRequest struct {
@@ -36,10 +41,12 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	CreatedAt time.Time `json:"created_at"`
-	Token     string    `json:"token,omitempty"`
-	UserID    uuid.UUID `json:"user_id,omitempty"`
-	Email     string    `json:"email,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	Token        string    `json:"token,omitempty"`
+	Email        string    `json:"email,omitempty"`
+	SessionID    string    `json:"-"`
+	RefreshToken string    `json:"-"`
+	UserID       uuid.UUID `json:"user_id,omitempty"`
 }
 
 func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
@@ -61,16 +68,41 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		return nil, apperror.ErrUnAuthorized
 	}
 
-	token, err := s.authenticator.GenerateToken(existedUser)
+	accessToken, err := s.authenticator.GenerateToken(existedUser)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionID, err := uuid.NewUUID()
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, expiresAt, err := s.authenticator.GenerateRefreshToken(
+		existedUser,
+		sessionID.String(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := s.sessionRepo.CreateSession(ctx, &repo.CreateSessionParams{
+		ID:           sessionID,
+		RefreshToken: refreshToken,
+		ExpiresAt:    expiresAt,
+		UserEmail:    existedUser.Email,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &LoginResponse{
-		Email:     existedUser.Email,
-		UserID:    existedUser.ID,
-		CreatedAt: existedUser.CreatedAt,
-		Token:     token,
+		Email:        existedUser.Email,
+		UserID:       existedUser.ID,
+		CreatedAt:    existedUser.CreatedAt,
+		Token:        accessToken,
+		RefreshToken: refreshToken,
+		SessionID:    session.ID.String(),
 	}, nil
 }
 
@@ -131,4 +163,113 @@ func (s *authService) Register(
 		CreatedAt: createdUser.CreatedAt,
 		Password:  createdUser.Password,
 	}, nil
+}
+
+func (s *authService) Logout(ctx context.Context, refreshToken string) error {
+	claims, err := s.getRefreshTokenClaims(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	sessionID, err := s.getSessionIDFromClaims(claims)
+	if err != nil {
+		return err
+	}
+
+	if err := s.sessionRepo.DeleteSession(ctx, sessionID); err != nil {
+		return err
+	}
+	// when logout, delete session and clear cookie contains refrsh token
+	// access token has short lifetime so just wait and it will expire
+
+	return nil
+}
+
+type TokenRenewResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
+func (s *authService) TokenRenew(
+	ctx context.Context,
+	refreshToken string,
+) (*TokenRenewResponse, error) {
+	claims, err := s.getRefreshTokenClaims(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	email, err := s.getUserEmailFromClaims(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionID, err := s.getSessionIDFromClaims(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := s.sessionRepo.GetSessionByID(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// checks if email matches
+	if email != session.UserEmail {
+		return nil, apperror.ErrUnAuthorized
+	}
+
+	// checks if refreshToken matches
+	if refreshToken != session.RefreshToken {
+		return nil, apperror.ErrUnAuthorized
+	}
+
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := s.authenticator.GenerateToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TokenRenewResponse{
+		AccessToken: accessToken,
+	}, nil
+}
+
+func (s *authService) getRefreshTokenClaims(refreshToken string) (jwt.MapClaims, error) {
+	token, err := s.authenticator.VerifyToken(refreshToken)
+	if err != nil {
+		return jwt.MapClaims{}, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return jwt.MapClaims{}, apperror.ErrUnAuthorized
+	}
+
+	return claims, nil
+}
+
+func (s *authService) getSessionIDFromClaims(claims jwt.MapClaims) (uuid.UUID, error) {
+	sessionIDStr, err := claims.GetSubject()
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	sessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return sessionID, nil
+}
+
+func (s *authService) getUserEmailFromClaims(claims jwt.MapClaims) (string, error) {
+	email, ok := claims[authenticator.EmailClaim]
+	if !ok {
+		return "", apperror.ErrUnAuthorized
+	}
+	return email.(string), nil
 }
