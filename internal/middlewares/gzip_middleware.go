@@ -44,8 +44,6 @@ func GZipMiddleware(c *gin.Context) {
 		return
 	}
 
-	defer gz.Close()
-
 	// set appropriate headers
 	c.Header("Content-Encoding", "gzip")
 	c.Header("Vary", "Accept-Encoding")
@@ -54,6 +52,8 @@ func GZipMiddleware(c *gin.Context) {
 		ResponseWriter: c.Writer,
 		writer:         gz,
 	}
+
+	c.Set("gz", gz)
 
 	c.Next()
 }

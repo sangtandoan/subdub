@@ -25,7 +25,7 @@ func (r *router) Setup() http.Handler {
 	api := g.Group("/api")
 	{
 		api.Use(middlewares.ErrorMiddleware)
-		// api.Use(middlewares.GZipMiddleware)
+		api.Use(middlewares.GZipMiddleware)
 
 		v1 := api.Group("/v1")
 		{
