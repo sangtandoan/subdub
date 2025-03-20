@@ -49,7 +49,7 @@ func main() {
 	mailer := mailer.NewSMTPMailer(cfg.Mailer)
 
 	chrono := chrono.NewChrono(repo, mailer)
-	go chrono.ScheduleDailyTask(15, 33)
+	go chrono.ScheduleDailyTask(15, 55)
 
 	srv := server.NewServer(cfg.Server.Addr, router.Setup())
 	srv.Run()

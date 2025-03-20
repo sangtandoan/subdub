@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS auth_providers (
     provider_id varchar(255) NOT NULL,
     created_at timestamp DEFAULT NOW(),
 
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );

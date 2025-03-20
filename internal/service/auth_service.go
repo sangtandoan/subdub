@@ -92,7 +92,6 @@ type (
 		CreatedAt time.Time `json:"created_at"`
 		ID        uuid.UUID `json:"id,omitempty"`
 		Email     string    `json:"email,omitempty"`
-		Password  string    `json:"password"`
 	}
 )
 
@@ -137,7 +136,6 @@ func (s *authService) Register(
 		ID:        createdUser.ID,
 		Email:     createdUser.Email,
 		CreatedAt: createdUser.CreatedAt,
-		Password:  createdUser.Password,
 	}, nil
 }
 

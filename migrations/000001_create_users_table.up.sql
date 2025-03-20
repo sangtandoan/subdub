@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY,
-    email varchar(255) NOT NULL UNIQUE,
-    password bytea NOT NULL,
+    email varchar(255) UNIQUE,
+    password bytea,
     created_at timestamp DEFAULT NOW()
 );
 
