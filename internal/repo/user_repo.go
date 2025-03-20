@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/models"
@@ -30,13 +31,7 @@ func (repo *userRepo) GetUserByID(ctx context.Context, id uuid.UUID) (*models.Us
 
 	row := repo.db.QueryRowContext(timeOutCtx, query, id)
 
-	var user models.User
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return scanUser(row)
 }
 
 func (repo *userRepo) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
@@ -47,13 +42,7 @@ func (repo *userRepo) GetUserByEmail(ctx context.Context, email string) (*models
 
 	row := repo.db.QueryRowContext(timeOutCtx, query, email)
 
-	var user models.User
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return scanUser(row)
 }
 
 type CreateUserParams struct {
@@ -62,19 +51,55 @@ type CreateUserParams struct {
 	Password string
 }
 
+type UserRow struct {
+	Password  *string
+	CreatedAt time.Time
+	ID        uuid.UUID
+	Email     string
+}
+
 func (repo *userRepo) CreateUser(ctx context.Context, arg *CreateUserParams) (*models.User, error) {
+	ex := getExcutor(ctx, repo.db)
+
 	query := "INSERT INTO users (id, email, password) VALUES ($1, $2, $3) RETURNING id, email, password, created_at"
+
+	if arg.Password == "" {
+		query = "INSERT INTO users (id, email) VALUES ($1, $2) RETURNING id, email, password, created_at"
+	}
 
 	timeOutCtx, cancel := context.WithTimeout(ctx, QueryTimeOut)
 	defer cancel()
 
-	row := repo.db.QueryRowContext(timeOutCtx, query, arg.ID, arg.Email, arg.Password)
+	var row *sql.Row
+	if arg.Password != "" {
+		row = ex.QueryRowContext(timeOutCtx, query, arg.ID, arg.Email, arg.Password)
+	} else {
+		row = ex.QueryRowContext(timeOutCtx, query, arg.ID, arg.Email)
+	}
 
-	var user models.User
+	return scanUser(row)
+}
+
+func toUser(user *UserRow, password string) *models.User {
+	return &models.User{
+		ID:        user.ID,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		Password:  password,
+	}
+}
+
+func scanUser(row *sql.Row) (*models.User, error) {
+	var user UserRow
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	password := ""
+	if user.Password != nil {
+		password = *user.Password
+	}
+
+	return toUser(&user, password), nil
 }

@@ -33,6 +33,14 @@ type Session struct {
 	IsRevoked    bool
 }
 
+type AuthProvider struct {
+	CreatedAt  time.Time
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Provider   string
+	ProviderID string
+}
+
 // create this type to enable marshal and unmarshal from format "YYYY-mm-dd"
 // if using normal time.Time, when unmarshal will occur error
 type SubscriptionTime time.Time

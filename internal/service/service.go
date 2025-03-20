@@ -22,6 +22,13 @@ func NewService(
 		User:         NewUserService(repo.User),
 		Subscription: NewSubscriptionService(repo.Subscription),
 		Auth:         NewAuthService(repo.User, repo.Session, authenticator),
-		OAuth2:       NewGoogleOAuth2Service(config.GoogleOAuth),
+		OAuth2: NewGoogleOAuth2Service(
+			config.GoogleOAuth,
+			repo.User,
+			repo.AuthProvider,
+			repo.Session,
+			authenticator,
+			repo.TX,
+		),
 	}
 }

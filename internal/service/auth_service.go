@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
+	"github.com/sangtandoan/subscription_tracker/internal/models"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 	"golang.org/x/crypto/bcrypt"
@@ -41,7 +42,6 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	CreatedAt    time.Time `json:"created_at"`
 	Token        string    `json:"token,omitempty"`
 	Email        string    `json:"email,omitempty"`
 	SessionID    string    `json:"-"`
@@ -68,30 +68,7 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 		return nil, apperror.ErrUnAuthorized
 	}
 
-	accessToken, err := s.authenticator.GenerateToken(existedUser)
-	if err != nil {
-		return nil, err
-	}
-
-	sessionID, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-
-	refreshToken, expiresAt, err := s.authenticator.GenerateRefreshToken(
-		existedUser,
-		sessionID.String(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	session, err := s.sessionRepo.CreateSession(ctx, &repo.CreateSessionParams{
-		ID:           sessionID,
-		RefreshToken: refreshToken,
-		ExpiresAt:    expiresAt,
-		UserEmail:    existedUser.Email,
-	})
+	tokens, err := generateTokens(ctx, s.authenticator, s.sessionRepo, existedUser)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +76,9 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 	return &LoginResponse{
 		Email:        existedUser.Email,
 		UserID:       existedUser.ID,
-		CreatedAt:    existedUser.CreatedAt,
-		Token:        accessToken,
-		RefreshToken: refreshToken,
-		SessionID:    session.ID.String(),
+		Token:        tokens.accessToken,
+		RefreshToken: tokens.refreshToken,
+		SessionID:    tokens.session.ID.String(),
 	}, nil
 }
 
@@ -272,4 +248,51 @@ func (s *authService) getUserEmailFromClaims(claims jwt.MapClaims) (string, erro
 		return "", apperror.ErrUnAuthorized
 	}
 	return email.(string), nil
+}
+
+type generateTokensResponse struct {
+	accessToken  string
+	refreshToken string
+	session      *models.Session
+}
+
+func generateTokens(
+	ctx context.Context,
+	authenticator authenticator.Authenticator,
+	sessionRepo repo.SessionRepo,
+	existedUser *models.User,
+) (*generateTokensResponse, error) {
+	accessToken, err := authenticator.GenerateToken(existedUser)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionID, err := uuid.NewUUID()
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, expiresAt, err := authenticator.GenerateRefreshToken(
+		existedUser,
+		sessionID.String(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := sessionRepo.CreateSession(ctx, &repo.CreateSessionParams{
+		ID:           sessionID,
+		RefreshToken: refreshToken,
+		ExpiresAt:    expiresAt,
+		UserEmail:    existedUser.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &generateTokensResponse{
+		accessToken,
+		refreshToken,
+		session,
+	}, nil
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
@@ -53,6 +54,16 @@ func (h *oAuth2Handler) CallbackHandler(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
+
+	c.SetCookie(
+		"refresh-token",
+		res.RefreshToken,
+		int(authenticator.RefreshTokenExpiry),
+		"/",
+		"",
+		false,
+		true,
+	)
 
 	c.JSON(http.StatusOK, response.NewAppResponse("sign in with oauth ok", res))
 }
