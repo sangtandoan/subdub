@@ -26,7 +26,7 @@ type googleOAuth2Service struct {
 	userRepo         repo.UserRepo
 	sessionRepo      repo.SessionRepo
 	authenticator    authenticator.Authenticator
-	tx               repo.TX
+	tx               repo.TransactionManager
 }
 
 func NewGoogleOAuth2Service(
@@ -35,7 +35,7 @@ func NewGoogleOAuth2Service(
 	authProviderRepo repo.AuthProviderRepo,
 	sessionRepo repo.SessionRepo,
 	authenticator authenticator.Authenticator,
-	tx repo.TX,
+	tx repo.TransactionManager,
 ) *googleOAuth2Service {
 	state, err := uuid.NewUUID()
 	if err != nil {

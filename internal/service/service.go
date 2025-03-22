@@ -28,7 +28,7 @@ func NewService(
 			repo.AuthProvider,
 			repo.Session,
 			authenticator,
-			repo.TX,
+			repo.Transaction,
 		),
 	}
 }
