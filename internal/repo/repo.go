@@ -6,23 +6,26 @@ import (
 	"time"
 )
 
+// QueryTimeOut defines the standard timeout for database operations
 const QueryTimeOut = time.Second * 10
 
+// Repo contains all repository interfaces
 type Repo struct {
 	User         UserRepo
 	Subscription SubscriptionRepo
 	Session      SessionRepo
 	AuthProvider AuthProviderRepo
-	TX           TX
+	Transaction  TransactionManager
 }
 
+// NewRepo creates a new repository instance with all dependencies
 func NewRepo(db *sql.DB) *Repo {
 	return &Repo{
 		User:         NewUserRepo(db),
 		Subscription: NewSubsciptionRepo(db),
 		Session:      NewSessionRepo(db),
 		AuthProvider: NewAuthProviderRepo(db),
-		TX:           NewTX(db),
+		Transaction:  NewTransactionManager(db),
 	}
 }
 
@@ -31,19 +34,25 @@ type Executor interface {
 	ExecContext(ctx context.Context, query string, params ...any) (sql.Result, error)
 }
 
-type TX interface {
+// TransactionManager defines the interface for transaction operations
+type TransactionManager interface {
 	WithTx(ctx context.Context, f func(txContext context.Context) error) error
 }
 
-type tx struct{ db *sql.DB }
+type transactionManager struct{ db *sql.DB }
 
-func NewTX(db *sql.DB) *tx {
-	return &tx{db}
+func NewTransactionManager(db *sql.DB) *transactionManager {
+	return &transactionManager{db}
 }
 
+// TxKey is the context key for transaction
 type TxKey struct{}
 
-func (t *tx) WithTx(ctx context.Context, f func(txContext context.Context) error) error {
+// WithTx executes the given function within a transaction
+func (t *transactionManager) WithTx(
+	ctx context.Context,
+	f func(txContext context.Context) error,
+) error {
 	tx, err := t.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -62,11 +71,12 @@ func (t *tx) WithTx(ctx context.Context, f func(txContext context.Context) error
 	return tx.Commit()
 }
 
+// getExcutor returns the appropriate executor (DB or Transaction) from context
 func getExcutor(ctx context.Context, db *sql.DB) Executor {
-	tx := ctx.Value(TxKey{})
-	if tx == nil {
+	tx, ok := ctx.Value(TxKey{}).(*sql.Tx)
+	if !ok || tx == nil {
 		return db
 	}
 
-	return tx.(*sql.Tx)
+	return tx
 }
