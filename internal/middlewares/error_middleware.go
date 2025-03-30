@@ -13,11 +13,11 @@ func ErrorMiddleware(c *gin.Context) {
 	c.Next()
 
 	gz, exists := c.Get("gz")
-	if !exists {
+	if exists {
+		defer gz.(*gzip.Writer).Close()
+	} else {
 		_ = c.Error(apperror.ErrInternalServerError)
 	}
-
-	defer gz.(*gzip.Writer).Close()
 
 	if len(c.Errors) > 0 {
 		for _, err := range c.Errors {

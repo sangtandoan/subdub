@@ -29,9 +29,27 @@ func GZipMiddleware(c *gin.Context) {
 		return
 	}
 
-	// checks if we want to compress this content type
+	// we have 2 options for not compressing img or video
+
+	// 1.
+	// Checks if we want to compress this content type in response header
+	// because we want to comporess response data,
+	// not checking in request header because that means user is sending img or video to us.
+	//
+	// There's actually a flaw in this implementation.
+	// Since the middleware runs before the handler,
+	// the Content-Type might not be set yet when this check runs
 	contentType := c.Writer.Header().Get("Content-Type")
 	if strings.Contains(contentType, "image/") || strings.Contains(contentType, "video/") {
+		c.Next()
+		return
+	}
+
+	// 2.
+	// Check URL path for file extensions.
+	// This is a more reliable way to check if we want to compress this content type
+	path := c.Request.URL.Path
+	if strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".mp4") {
 		c.Next()
 		return
 	}
@@ -53,6 +71,9 @@ func GZipMiddleware(c *gin.Context) {
 		writer:         gz,
 	}
 
+	// stores the GZIP writer in the Gin context (`c`)
+	// so it can be closed later (in ErrorMiddlware),
+	// this is important to avoid memory leaks.
 	c.Set("gz", gz)
 
 	c.Next()

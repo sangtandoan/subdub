@@ -16,6 +16,9 @@ func AuthMiddleware(auth authenticator.Authenticator) gin.HandlerFunc {
 		bearerToken := c.GetHeader("Authorization")
 		if bearerToken == "" {
 			_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "no authorization header"))
+			// needs c.Abort() here to cancel c.Next(),
+			// even you return here but you have c.Next(),
+			// the chain will continue, c.Abort() will cancel that
 			c.Abort()
 			return
 		}
