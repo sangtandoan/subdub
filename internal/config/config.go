@@ -66,7 +66,7 @@ func LoadConfig() (*Config, error) {
 
 	authenticatorConfig := &AuthenticatorConfig{
 		SecretKey:   getEnv("JWT_SECRET_KEY", "secret"),
-		TokenExpiry: getEnv("TOKEN_EXPIRY", "30m"),
+		TokenExpiry: getEnv("TOKEN_EXPIRY", "24h"),
 	}
 
 	mailerConfig := &MailerConfig{

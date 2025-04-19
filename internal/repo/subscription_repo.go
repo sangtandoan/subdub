@@ -11,7 +11,10 @@ import (
 )
 
 type SubscriptionRepo interface {
-	GetAllSubscriptions(ctx context.Context, userID uuid.UUID) ([]*SubscriptionRow, error)
+	GetAllSubscriptions(
+		ctx context.Context,
+		arg *GetAllSubscriptionsParams,
+	) ([]*SubscriptionRow, int, error)
 	CreateSubscription(
 		ctx context.Context,
 		arg CreateSubscriptionParams,
@@ -55,15 +58,27 @@ func (row *SubscriptionRow) MapToSubscriptionModel(sub *models.Subscription) err
 	return nil
 }
 
+type GetAllSubscriptionsParams struct {
+	UserID uuid.UUID
+	Limit  int
+	Offset int
+}
+
 func (repo *subscriptionRepo) GetAllSubscriptions(
 	ctx context.Context,
-	userID uuid.UUID,
-) ([]*SubscriptionRow, error) {
-	query := "SELECT id, user_id, name, start_date, end_date, duration FROM subscriptions WHERE user_id = $1"
+	arg *GetAllSubscriptionsParams,
+) ([]*SubscriptionRow, int, error) {
+	query := `
+		SELECT id, user_id, name, start_date, end_date, duration
+		FROM subscriptions 
+		WHERE user_id = $1
+		ORDER BY id
+		LIMIT $2 OFFSET $3
+	`
 
-	rows, err := repo.db.QueryContext(ctx, query, userID)
+	rows, err := repo.db.QueryContext(ctx, query, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var res []*SubscriptionRow
@@ -78,13 +93,21 @@ func (repo *subscriptionRepo) GetAllSubscriptions(
 			&sub.Duration,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		res = append(res, &sub)
 	}
 
-	return res, nil
+	query = `SELECT COUNT(*) FROM subscriptions WHERE user_id = $1`
+
+	var count int
+	err = repo.db.QueryRowContext(ctx, query, arg.UserID).Scan(&count)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return res, count, nil
 }
 
 type CreateSubscriptionParams struct {
@@ -146,9 +169,9 @@ func (repo *subscriptionRepo) GetSubscriptionsBeforeNumDays(
 		FROM subscriptions WHERE end_date <= $1 AND end_date + INTERVAL '1 day' >= $1
 	`
 
-	currentBeforeNumDays := time.Now().AddDate(0, 0, num)
+	futureAfterNumDays := time.Now().AddDate(0, 0, num)
 
-	rows, err := repo.db.QueryContext(ctx, query, currentBeforeNumDays)
+	rows, err := repo.db.QueryContext(ctx, query, futureAfterNumDays)
 	if err != nil {
 		return nil, err
 	}

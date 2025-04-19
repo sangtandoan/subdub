@@ -11,7 +11,10 @@ import (
 )
 
 type SubscriptionService interface {
-	GetAllSubscriptions(ctx context.Context, userID uuid.UUID) ([]*models.Subscription, error)
+	GetAllSubscriptions(
+		ctx context.Context,
+		req *GetAllSubscriptionsRequest,
+	) (*GetAllSubscriptionsResponse, error)
 	CreateSubscription(
 		ctx context.Context,
 		req *CreateSubscriptionRequest,
@@ -53,11 +56,28 @@ func (s *subscriptionService) GetSubscriptionsBeforeNumDays(
 	return arr, nil
 }
 
+type GetAllSubscriptionsRequest struct {
+	UserID uuid.UUID
+	Offset int
+	Limit  int
+}
+
+type GetAllSubscriptionsResponse struct {
+	Subscriptions []*models.Subscription `json:"subscriptions"`
+	Count         int                    `json:"count"`
+}
+
 func (s *subscriptionService) GetAllSubscriptions(
 	ctx context.Context,
-	userID uuid.UUID,
-) ([]*models.Subscription, error) {
-	res, err := s.repo.GetAllSubscriptions(ctx, userID)
+	req *GetAllSubscriptionsRequest,
+) (*GetAllSubscriptionsResponse, error) {
+	arg := repo.GetAllSubscriptionsParams{
+		UserID: req.UserID,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	res, count, err := s.repo.GetAllSubscriptions(ctx, &arg)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +93,10 @@ func (s *subscriptionService) GetAllSubscriptions(
 		arr = append(arr, &sub)
 	}
 
-	return arr, nil
+	return &GetAllSubscriptionsResponse{
+		Subscriptions: arr,
+		Count:         count,
+	}, nil
 }
 
 type CreateSubscriptionRequest struct {

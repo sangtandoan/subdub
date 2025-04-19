@@ -58,7 +58,33 @@ func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
 		return
 	}
 
-	res, err := h.s.GetAllSubscriptions(c.Request.Context(), userID)
+	limit := c.Query("limit")
+	if limit == "" {
+		limit = "10"
+	}
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	offset := c.Query("offset")
+	if offset == "" {
+		offset = "0"
+	}
+	offsetInt, err := strconv.Atoi(offset)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	req := service.GetAllSubscriptionsRequest{
+		UserID: userID,
+		Limit:  limitInt,
+		Offset: offsetInt,
+	}
+
+	res, err := h.s.GetAllSubscriptions(c.Request.Context(), &req)
 	if err != nil {
 		_ = c.Error(err)
 		return
