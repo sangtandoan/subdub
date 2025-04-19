@@ -24,10 +24,10 @@ func NewAuthProviderRepo(db *sql.DB) *authProviderRepo {
 }
 
 type CreateAuthProviderParams struct {
-	ID         uuid.UUID
-	UserID     uuid.UUID
 	Provider   string
 	ProviderID string
+	ID         uuid.UUID
+	UserID     uuid.UUID
 }
 
 func (repo *authProviderRepo) CreateAuthProvider(

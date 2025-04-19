@@ -46,16 +46,16 @@ func (repo *userRepo) GetUserByEmail(ctx context.Context, email string) (*models
 }
 
 type CreateUserParams struct {
-	ID       uuid.UUID
 	Email    string
 	Password string
+	ID       uuid.UUID
 }
 
 type UserRow struct {
-	Password  *string
 	CreatedAt time.Time
-	ID        uuid.UUID
+	Password  *string
 	Email     string
+	ID        uuid.UUID
 }
 
 func (repo *userRepo) CreateUser(ctx context.Context, arg *CreateUserParams) (*models.User, error) {

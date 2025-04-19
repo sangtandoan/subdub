@@ -10,9 +10,9 @@ import (
 
 type User struct {
 	CreatedAt time.Time
-	ID        uuid.UUID
 	Email     string
 	Password  string
+	ID        uuid.UUID
 }
 
 type Subscription struct {
@@ -27,18 +27,18 @@ type Subscription struct {
 type Session struct {
 	CreatedAt    time.Time
 	ExpiresAt    time.Time
-	ID           uuid.UUID
 	RefreshToken string
 	UserEmail    string
+	ID           uuid.UUID
 	IsRevoked    bool
 }
 
 type AuthProvider struct {
 	CreatedAt  time.Time
-	ID         uuid.UUID
-	UserID     uuid.UUID
 	Provider   string
 	ProviderID string
+	ID         uuid.UUID
+	UserID     uuid.UUID
 }
 
 // create this type to enable marshal and unmarshal from format "YYYY-mm-dd"

@@ -39,11 +39,12 @@ func GZipMiddleware(c *gin.Context) {
 	// There's actually a flaw in this implementation.
 	// Since the middleware runs before the handler,
 	// the Content-Type might not be set yet when this check runs
-	contentType := c.Writer.Header().Get("Content-Type")
-	if strings.Contains(contentType, "image/") || strings.Contains(contentType, "video/") {
-		c.Next()
-		return
-	}
+	//
+	// contentType := c.Writer.Header().Get("Content-Type")
+	// if strings.Contains(contentType, "image/") || strings.Contains(contentType, "video/") {
+	// 	c.Next()
+	// 	return
+	// }
 
 	// 2.
 	// Check URL path for file extensions.

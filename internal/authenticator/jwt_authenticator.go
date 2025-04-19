@@ -20,8 +20,8 @@ const (
 // JWT implementation of Authenticator interface
 type jwtAuthenticator struct {
 	secretKey          string
-	tokenExpiry        time.Duration
 	refreshTokenExpiry time.Duration
+	tokenExpiry        time.Duration
 }
 
 func NewJWTAuthenticator(cfg *config.AuthenticatorConfig) (*jwtAuthenticator, error) {

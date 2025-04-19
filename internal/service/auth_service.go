@@ -90,8 +90,8 @@ type (
 
 	RegisterResponse struct {
 		CreatedAt time.Time `json:"created_at"`
-		ID        uuid.UUID `json:"id,omitempty"`
 		Email     string    `json:"email,omitempty"`
+		ID        uuid.UUID `json:"id,omitempty"`
 	}
 )
 
@@ -249,9 +249,9 @@ func (s *authService) getUserEmailFromClaims(claims jwt.MapClaims) (string, erro
 }
 
 type generateTokensResponse struct {
+	session      *models.Session
 	accessToken  string
 	refreshToken string
-	session      *models.Session
 }
 
 func generateTokens(
@@ -289,8 +289,8 @@ func generateTokens(
 	}
 
 	return &generateTokensResponse{
+		session,
 		accessToken,
 		refreshToken,
-		session,
 	}, nil
 }

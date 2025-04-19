@@ -49,10 +49,10 @@ func (repo *sessionRepo) GetSessionByID(
 }
 
 type CreateSessionParams struct {
-	ID           uuid.UUID
+	ExpiresAt    time.Time
 	RefreshToken string
 	UserEmail    string
-	ExpiresAt    time.Time
+	ID           uuid.UUID
 }
 
 func (repo *sessionRepo) CreateSession(

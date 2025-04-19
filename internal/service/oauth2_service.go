@@ -21,12 +21,12 @@ type OAuth2Service interface {
 
 type googleOAuth2Service struct {
 	config           *oauth2.Config
-	state            string
 	authProviderRepo repo.AuthProviderRepo
 	userRepo         repo.UserRepo
 	sessionRepo      repo.SessionRepo
 	authenticator    authenticator.Authenticator
 	tx               repo.TransactionManager
+	state            string
 }
 
 func NewGoogleOAuth2Service(
@@ -44,12 +44,12 @@ func NewGoogleOAuth2Service(
 
 	return &googleOAuth2Service{
 		config,
-		state.String(),
 		authProviderRepo,
 		userRepo,
 		sessionRepo,
 		authenticator,
 		tx,
+		state.String(),
 	}
 }
 

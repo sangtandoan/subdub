@@ -91,9 +91,9 @@ type CreateSubscriptionParams struct {
 	StartDate time.Time
 	EndDate   time.Time
 	Name      string
+	Duration  string
 	ID        uuid.UUID
 	UserID    uuid.UUID
-	Duration  string
 }
 
 func (repo *subscriptionRepo) CreateSubscription(
@@ -116,8 +116,8 @@ func (repo *subscriptionRepo) CreateSubscription(
 		arg.ID,
 		arg.UserID,
 		arg.Name,
-		time.Time(arg.StartDate),
-		time.Time(arg.EndDate),
+		arg.StartDate,
+		arg.EndDate,
 		arg.Duration,
 	)
 

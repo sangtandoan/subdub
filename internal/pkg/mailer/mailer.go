@@ -10,8 +10,8 @@ type Mailer interface {
 }
 
 type SendRequest struct {
-	To       []string
 	Data     any
+	To       []string
 	Template MailTemplateOption
 }
 

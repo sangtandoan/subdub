@@ -1,8 +1,8 @@
 package response
 
 type AppResponse struct {
-	Msg     string `json:"msg,omitempty"`
 	Data    any    `json:"data,omitempty"`
+	Msg     string `json:"msg,omitempty"`
 	Success bool   `json:"success,omitempty"`
 }
 
