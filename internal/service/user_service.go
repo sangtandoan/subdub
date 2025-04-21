@@ -25,7 +25,6 @@ func NewUserService(userRepo repo.UserRepo) *userService {
 type GetUserResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 	Email     string    `json:"email,omitempty"`
-	Password  string    `json:"password"`
 	ID        uuid.UUID `json:"id,omitempty"`
 }
 
@@ -38,7 +37,6 @@ func (s *userService) GetUser(ctx context.Context, id uuid.UUID) (*GetUserRespon
 	return &GetUserResponse{
 		ID:        user.ID,
 		Email:     user.Email,
-		Password:  user.Password,
 		CreatedAt: user.CreatedAt,
 	}, nil
 }

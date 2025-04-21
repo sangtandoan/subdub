@@ -12,6 +12,7 @@ import (
 func ErrorMiddleware(c *gin.Context) {
 	c.Next()
 
+	// close gzip writer if it exists
 	gz, exists := c.Get("gz")
 	if exists {
 		defer gz.(*gzip.Writer).Close()

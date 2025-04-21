@@ -51,5 +51,5 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.NewAppResponse("get user successfylly", res))
+	c.JSON(http.StatusOK, response.NewAppResponse("get user successfully", res))
 }

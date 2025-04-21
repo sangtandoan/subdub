@@ -72,9 +72,18 @@ func GZipMiddleware(c *gin.Context) {
 		writer:         gz,
 	}
 
-	// stores the GZIP writer in the Gin context (`c`)
+	// Stores the GZIP writer in the Gin context (`c`)
 	// so it can be closed later (in ErrorMiddlware),
-	// this is important to avoid memory leaks.
+	//
+	// This is important to avoid memory leaks.
+	// because ErrorMiddleware is the first middleware
+	// that runs after the handler to catch all errors.
+	//
+	// If close gzip writer here, it will close the writer and write header to c.Writer
+	// but if in ErrorMiddleware, there is an error, this middleware need to write header.
+	//
+	// It will conflict with the closed gzip writer and cause error.
+	// So we need to close the gzip writer in ErrorMiddleware after write header.
 	c.Set("gz", gz)
 
 	c.Next()
