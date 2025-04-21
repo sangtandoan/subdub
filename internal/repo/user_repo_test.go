@@ -14,6 +14,10 @@ import (
 )
 
 func TestGetUserByID(t *testing.T) {
+	// db is mock for *sql.DB, mock is using for expectations for that *sql.DB
+	//
+	// It is different from using gomock because gomock creates a mock for that interface and
+	// also uses that mock for expectations.
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open sqlmock database: %s", err)
