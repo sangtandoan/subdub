@@ -89,6 +89,8 @@ func toUser(user *UserRow, password string) *models.User {
 	}
 }
 
+// scanUser scans a row into a User struct
+// and also handles the case where the password is nil
 func scanUser(row *sql.Row) (*models.User, error) {
 	var user UserRow
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt)
@@ -96,6 +98,7 @@ func scanUser(row *sql.Row) (*models.User, error) {
 		return nil, err
 	}
 
+	// if user is created by using OAuth provider, password will be nil
 	password := ""
 	if user.Password != nil {
 		password = *user.Password

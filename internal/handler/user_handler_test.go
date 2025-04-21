@@ -6,22 +6,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/handler"
-	"github.com/sangtandoan/subscription_tracker/internal/models"
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/response"
 	"github.com/sangtandoan/subscription_tracker/internal/service"
+	"github.com/sangtandoan/subscription_tracker/internal/utils"
 	"github.com/sangtandoan/subscription_tracker/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestGetUserHandler(t *testing.T) {
-	user := randomUser()
+	user := utils.RandomUser()
 	getUserResponse := &service.GetUserResponse{
 		CreatedAt: user.CreatedAt,
 		Email:     user.Email,
@@ -33,23 +32,73 @@ func TestGetUserHandler(t *testing.T) {
 
 	testCases := []struct {
 		buildStubs    func(*mocks.MockUserService)
-		checkResponse func(*testing.T, *httptest.ResponseRecorder)
+		checkResponse func(*testing.T, *gin.Context, *httptest.ResponseRecorder)
+		setContext    func(*gin.Context, string)
 		name          string
 		userID        string
 	}{
 		{
 			name:   "Get user successfully",
 			userID: user.ID.String(),
+			setContext: func(c *gin.Context, userID string) {
+				c.Set(authenticator.SubClaim, userID)
+
+				// We need to set c.Params here even the URL has the id because
+				// we call handler directly without going through the gin router,
+				// where the URL parameters are automatically parsed and set in c.Params.
+				c.Params = gin.Params{
+					{Key: "id", Value: userID},
+				}
+			},
 			buildStubs: func(s *mocks.MockUserService) {
 				s.EXPECT().GetUser(gomock.Any(), user.ID).Times(1).Return(getUserResponse, nil)
 			},
-			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, c *gin.Context, rec *httptest.ResponseRecorder) {
 				require.Equal(t, rec.Code, http.StatusOK)
 				require.JSONEq(
 					t,
 					string(appResponseJSON),
 					rec.Body.String(),
 				)
+			},
+		},
+		{
+			name:   "Get user with invalid id",
+			userID: "invalid-uuid",
+			setContext: func(c *gin.Context, userID string) {
+			},
+			buildStubs: func(s *mocks.MockUserService) {
+				s.EXPECT().GetUser(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, c *gin.Context, rec *httptest.ResponseRecorder) {
+				require.Greater(t, len(c.Errors), 0)
+
+				for _, err := range c.Errors {
+					// ErrorIs is used to check if at least one of the errors in the error's chain
+					// is of a specific type
+					// ErrorAs is used to check if at least one of the errors in the error's chain
+					// is of a specific type and then ssigned to a variable of that type
+					require.ErrorIs(t, err.Err, apperror.ErrInvalidJSON)
+				}
+			},
+		},
+		{
+			name:   "Get user without userID in context",
+			userID: user.ID.String(),
+			setContext: func(c *gin.Context, userID string) {
+				c.Params = gin.Params{
+					{Key: "id", Value: userID},
+				}
+			},
+			buildStubs: func(s *mocks.MockUserService) {
+				s.EXPECT().GetUser(gomock.Any(), user.ID).Times(0)
+			},
+			checkResponse: func(t *testing.T, c *gin.Context, rec *httptest.ResponseRecorder) {
+				require.Greater(t, len(c.Errors), 0)
+
+				for _, err := range c.Errors {
+					require.ErrorIs(t, err.Err, apperror.ErrUnAuthorized)
+				}
 			},
 		},
 	}
@@ -75,24 +124,12 @@ func TestGetUserHandler(t *testing.T) {
 			rec := httptest.NewRecorder()
 
 			c, _ := gin.CreateTestContext(rec)
-			c.Set(authenticator.SubClaim, tc.userID)
-			c.Params = gin.Params{
-				{Key: "id", Value: tc.userID},
-			}
+			tc.setContext(c, tc.userID)
 			c.Request = req
 
 			userHandler.GetUserHandler(c)
 			// assert
-			tc.checkResponse(t, rec)
+			tc.checkResponse(t, c, rec)
 		})
-	}
-}
-
-func randomUser() *models.User {
-	return &models.User{
-		CreatedAt: time.Now(),
-		Email:     "sangvaminh11497@gmail.com",
-		Password:  "secret",
-		ID:        uuid.New(),
 	}
 }
