@@ -103,7 +103,7 @@ type CreateSubscriptionRequest struct {
 	StartDate models.SubscriptionTime `json:"start_date"         validate:"required"`
 	Name      string                  `json:"name,omitempty"     validate:"required,min=3,max=20"`
 	UserID    uuid.UUID               `json:"-"                  validate:"-"`
-	Duration  enums.Duration          `json:"duration,omitempty" validate:"required"`
+	Duration  enums.Duration          `json:"duration,omitempty" validate:"required"              enums:"weekly, monthly, 6 months, yearly" swaggertype:"string"`
 }
 
 func (s *subscriptionService) CreateSubscription(

@@ -22,4 +22,7 @@ migrate-down1:
 migrate-force:
 	@migrate -path=$(MIGRATION_PATH) -database=$(DB_ADDR) force $(VERSION)
 
-.PHONY: migrate migrate-up migrate-up1 migrate-down migrate-down1 migrate-force
+swag-init:
+	@swag init -g ./cmd/main.go && swag fmt
+
+.PHONY: migrate migrate-up migrate-up1 migrate-down migrate-down1 migrate-force swag-init

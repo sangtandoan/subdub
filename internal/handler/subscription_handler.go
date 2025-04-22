@@ -51,6 +51,22 @@ func (h *subscriptionHandler) GetSubscriptionsBeforeNumDays(c *gin.Context) {
 	c.JSON(http.StatusOK, response.NewAppResponse("ok", res))
 }
 
+// GetAllSubscriptionsHandler godoc
+//
+//	@Summary		Get all subscriptions
+//	@Description	get all subscriptions
+//	@Tags			subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		service.GetAllSubscriptionsResponse
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Router			/subscriptions/ [get]
+//
+// This tells that this handler is protected by an API key
+//
+//	@Security		ApiKeyAuth
 func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
 	userID, err := utils.GetUserIDFromContext(c)
 	if err != nil {
@@ -93,6 +109,23 @@ func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response.NewAppResponse("getl all subscriptions successfully", res))
 }
 
+// CreateSubscriptionHandler godoc
+//
+//	@Summary		Create subscription
+//	@Description	Create subscription
+//	@Tags			subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			subscription	body		service.CreateSubscriptionRequest	true	"Create subscription request"
+//	@Success		200				{array}		service.GetAllSubscriptionsResponse
+//	@Failure		400				{object}	error
+//	@Failure		404				{object}	error
+//	@Failure		500				{object}	error
+//	@Router			/subscriptions/ [post]
+//
+// This tells that this handler is protected by an API key
+//
+//	@Security		ApiKeyAuth
 func (h *subscriptionHandler) CreateSubscriptionHandler(c *gin.Context) {
 	var req service.CreateSubscriptionRequest
 

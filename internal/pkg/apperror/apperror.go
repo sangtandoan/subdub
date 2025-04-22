@@ -28,7 +28,7 @@ var (
 type AppError struct {
 	Msg        any
 	StatusCode int
-	Success    bool
+	Success    bool `example:"false"`
 }
 
 type ValidateError struct {

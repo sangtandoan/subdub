@@ -16,6 +16,30 @@ import (
 	"github.com/sangtandoan/subscription_tracker/internal/service"
 )
 
+//	@title			Subscription Tracker API
+//	@version		1.0
+//	@description	This is an API for subscription tracker.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+
+// This will set accessToken for Swagger UI
+// in header and name of that header field is Authorization
+//
+//	@securityDefinitions.apiKey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+
+// @externalDocs.description	OpenAPI
+// @externalDocs.url			https://swagger.io/resources/open-api/
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {

@@ -1,0 +1,186 @@
+basePath: /api/v1
+definitions:
+  apperror.AppError:
+    properties:
+      msg: {}
+      statusCode:
+        type: integer
+      success:
+        example: false
+        type: boolean
+    type: object
+  models.Subscription:
+    properties:
+      duration:
+        description: |-
+          Duration is a custom type that can be marshaled and unmarshaled
+          to and from a string, but swagger does not see this so we need to specify it in struct tag swaggertype.
+
+          enums struct tag also helps us to document the enum values in swagger
+        enum:
+        - weekly
+        - ' monthly'
+        - ' 6 months'
+        - ' yearly'
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  service.CreateSubscriptionRequest:
+    properties:
+      duration:
+        enum:
+        - weekly
+        - ' monthly'
+        - ' 6 months'
+        - ' yearly'
+        type: string
+      name:
+        maxLength: 20
+        minLength: 3
+        type: string
+      start_date:
+        type: string
+    required:
+    - duration
+    - name
+    - start_date
+    type: object
+  service.GetAllSubscriptionsResponse:
+    properties:
+      count:
+        type: integer
+      subscriptions:
+        items:
+          $ref: '#/definitions/models.Subscription'
+        type: array
+    type: object
+  service.GetUserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is an API for subscription tracker.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Subscription Tracker API
+  version: "1.0"
+paths:
+  /subscriptions/:
+    get:
+      consumes:
+      - application/json
+      description: get all subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.GetAllSubscriptionsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get all subscriptions
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create subscription
+      parameters:
+      - description: Create subscription request
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.GetAllSubscriptionsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create subscription
+      tags:
+      - subscriptions
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user by id
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.GetUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apperror.AppError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by id
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

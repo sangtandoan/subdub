@@ -19,6 +19,20 @@ func NewUserHandler(s service.UserService) *userHandler {
 	return &userHandler{s}
 }
 
+//	@BasePath	/api/v1
+
+// GetUserHandler godoc
+//
+//	@Summary		Get user by id
+//	@Description	Get user by id
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"User ID"
+//	@Success		200	{object}	service.GetUserResponse
+//	@Failure		400	{object}	apperror.AppError
+//	@Router			/users/{id} [get]
+//	@Security		ApiKeyAuth
 func (h *userHandler) GetUserHandler(c *gin.Context) {
 	userIDString := c.Param("id")
 	userID, err := uuid.Parse(userIDString)
