@@ -57,13 +57,13 @@ func (d *Duration) AddDurationToTime(start time.Time) time.Time {
 
 	switch *d {
 	case Weekly:
-		end = time.Time(start).AddDate(0, 0, 7)
+		end = start.AddDate(0, 0, 7)
 	case Monthly:
-		end = time.Time(start).AddDate(0, 1, 0)
+		end = start.AddDate(0, 1, 0)
 	case SixMonths:
-		end = time.Time(start).AddDate(0, 6, 0)
+		end = start.AddDate(0, 6, 0)
 	case Yearly:
-		end = time.Time(start).AddDate(1, 0, 0)
+		end = start.AddDate(1, 0, 0)
 	}
 
 	return end

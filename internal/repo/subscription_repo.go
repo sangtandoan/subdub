@@ -20,6 +20,11 @@ type SubscriptionRepo interface {
 		arg CreateSubscriptionParams,
 	) (*SubscriptionRow, error)
 	GetSubscriptionsBeforeNumDays(ctx context.Context, num int) ([]*SubscriptionRow, error)
+	GetSubscriptionsNeedUpdateStartAndEndDate(ctx context.Context) ([]*SubscriptionRow, error)
+	UpdateSubscriptionStartAndEndDate(
+		ctx context.Context,
+		arg *UpdateSubscriptionStartAndEndDateParams,
+	) error
 }
 
 type subscriptionRepo struct {
@@ -30,6 +35,9 @@ func NewSubsciptionRepo(db *sql.DB) *subscriptionRepo {
 	return &subscriptionRepo{db}
 }
 
+// We use this struct to scan the result from the database
+// because models.Subscription has a custom type SubscriptionTime
+// which postgres driver can not scan directly to it
 type SubscriptionRow struct {
 	StartDate time.Time
 	EndDate   time.Time
@@ -195,4 +203,66 @@ func (repo *subscriptionRepo) GetSubscriptionsBeforeNumDays(
 	}
 
 	return subs, nil
+}
+
+func (repo *subscriptionRepo) GetSubscriptionsNeedUpdateStartAndEndDate(
+	ctx context.Context,
+) ([]*SubscriptionRow, error) {
+	query := `
+	    SELECT id, user_id, name, start_date, end_date, duration 
+		FROM subscriptions
+	    WHERE end_date <= $1 and end_date + INTERVAL '1 day' >= $1
+	`
+	now := time.Now()
+	rows, err := repo.db.QueryContext(ctx, query, now)
+	if err != nil {
+		return nil, err
+	}
+
+	var subs []*SubscriptionRow
+	for rows.Next() {
+		var sub SubscriptionRow
+		err := rows.Scan(
+			&sub.ID,
+			&sub.UserID,
+			&sub.Name,
+			&sub.StartDate,
+			&sub.EndDate,
+			&sub.Duration,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		subs = append(subs, &sub)
+	}
+
+	return subs, nil
+}
+
+type UpdateSubscriptionStartAndEndDateParams struct {
+	StartDate time.Time
+	EndDate   time.Time
+	ID        uuid.UUID
+}
+
+func (reop *subscriptionRepo) UpdateSubscriptionStartAndEndDate(
+	ctx context.Context,
+	arg *UpdateSubscriptionStartAndEndDateParams,
+) error {
+	query := `
+		UPDATE subscriptions 
+		SET start_date = $1, end_date = $2
+		WHERE id = $3
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOut)
+	defer cancel()
+
+	_, err := reop.db.ExecContext(ctx, query, arg.StartDate, arg.EndDate, arg.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

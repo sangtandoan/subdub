@@ -3,9 +3,11 @@ package chrono
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
+	"github.com/sangtandoan/subscription_tracker/internal/pkg/enums"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/mailer"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 )
@@ -26,7 +28,7 @@ func NewChrono(repo *repo.Repo, mailer mailer.Mailer) *chrono {
 	return &chrono{subscriptionRepo: repo.Subscription, userRepo: repo.User, mailer: mailer}
 }
 
-func (c *chrono) checkSubscriptionsDailyToSendEmail() {
+func (c *chrono) CheckSubscriptionsDailyToSendEmail() {
 	errsCh := make(chan error, len(days))
 
 	wg := &sync.WaitGroup{}
@@ -39,6 +41,59 @@ func (c *chrono) checkSubscriptionsDailyToSendEmail() {
 
 	wg.Wait()
 	fmt.Println("wg wait done")
+}
+
+func (c *chrono) CheckSubscriptionsDailyToUpdateStartDate() {
+	wg := &sync.WaitGroup{}
+
+	subs, err := c.subscriptionRepo.GetSubscriptionsNeedUpdateStartAndEndDate(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jobs := make(chan *repo.SubscriptionRow, 10)
+	wg.Add(len(subs))
+
+	done := func() {
+		wg.Done()
+	}
+
+	for range 5 {
+		go c.generateUpdateSubscriptionWorker(context.Background(), jobs, done)
+	}
+
+	for _, sub := range subs {
+		jobs <- sub
+	}
+
+	wg.Wait()
+
+	close(jobs)
+}
+
+func (c *chrono) generateUpdateSubscriptionWorker(
+	ctx context.Context,
+	jobs <-chan *repo.SubscriptionRow,
+	done func(),
+) {
+	for job := range jobs {
+		job.StartDate = job.EndDate
+		duration, err := enums.ParseString2Duration(job.Duration)
+		if err != nil {
+			log.Fatal(err)
+		}
+		job.EndDate = duration.AddDurationToTime(job.StartDate)
+
+		arg := repo.UpdateSubscriptionStartAndEndDateParams{
+			ID:        job.ID,
+			StartDate: job.StartDate,
+			EndDate:   job.EndDate,
+		}
+		c.subscriptionRepo.UpdateSubscriptionStartAndEndDate(ctx, &arg)
+
+		fmt.Println("Updated subscription with ID:", job.ID)
+		done()
+	}
 }
 
 func (c *chrono) querySubsAtSpecifyNumDays(
@@ -57,14 +112,36 @@ func (c *chrono) querySubsAtSpecifyNumDays(
 
 	c.generateWorkersPool(ctx, 3, num, jobs, done, errsCh)
 
+	// instead we can use another goroutine to check for cnt,
+	// and this will not block the main goroutine
+	// and also will not be blocked by jobs channel
+	// => deadlock will not occur
+	cnt := 0
+	go func() {
+		for cnt != len(subs) {
+			<-done
+			cnt += 1
+		}
+	}()
+
 	for _, sub := range subs {
 		jobs <- sub
 	}
 
-	cnt := 0
+	// if implement like this, deadlock can occur
+	// because if all workers are busy not consunming jobs,
+	// and subs is still more, then jobs will be blocked
+	// and this code block will nerver excute
+	// and if done channel full, worker can not send to done channel
+	// so deadlock will occur
+	//
+	// cnt := 0
+	// for cnt != len(subs) {
+	// 	<-done
+	// 	cnt += 1
+	// }
 	for cnt != len(subs) {
-		<-done
-		cnt += 1
+		continue
 	}
 
 	close(jobs)
@@ -144,6 +221,7 @@ func (c *chrono) ScheduleDailyTask(targetHour, targetMinute int) {
 		fmt.Println(waitDuration)
 		time.Sleep(waitDuration)
 
-		c.checkSubscriptionsDailyToSendEmail()
+		// c.CheckSubscriptionsDailyToSendEmail()
+		c.CheckSubscriptionsDailyToUpdateStartDate()
 	}
 }
