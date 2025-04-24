@@ -103,7 +103,6 @@ func (repo *subscriptionRepo) GetAllSubscriptions(
 	// add pagination to quer string
 	query += fmt.Sprintf(" ORDER BY start_date ASC LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
 	args = append(args, arg.Limit, arg.Offset)
-	fmt.Println(query)
 
 	rows, err := repo.db.QueryContext(ctx, query, args...)
 	if err != nil {

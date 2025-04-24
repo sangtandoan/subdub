@@ -153,9 +153,9 @@ func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 	if err := s.sessionRepo.DeleteSession(ctx, sessionID); err != nil {
 		return err
 	}
+
 	// when logout, delete session and clear cookie contains refrsh token
 	// access token has short lifetime so just wait and it will expire
-
 	return nil
 }
 

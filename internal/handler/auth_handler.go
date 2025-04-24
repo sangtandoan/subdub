@@ -91,6 +91,18 @@ func (h *authHandler) LogoutHandler(c *gin.Context) {
 		return
 	}
 
+	// c.SetCookie(
+	// 	"refresh_token",
+	// 	res.RefreshToken,
+	// 	int(authenticator.RefreshTokenExpiry),
+	// 	"/",
+	// 	"",
+	// 	false,
+	// 	true,
+	// )
+
+	// If you want to delete cookie, need to set everything the same to the existing cookie
+	// and set max age to -1, which tell browser to delete cookie immediately
 	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, response.NewAppResponse("logout ok", nil))
