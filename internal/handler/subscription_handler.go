@@ -68,11 +68,14 @@ func (h *subscriptionHandler) GetSubscriptionsBeforeNumDays(c *gin.Context) {
 //
 //	@Security		ApiKeyAuth
 func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
+	req := &service.GetAllSubscriptionsRequest{}
+
 	userID, err := utils.GetUserIDFromContext(c)
 	if err != nil {
 		c.Error(err)
 		return
 	}
+	req.UserID = userID
 
 	limit := c.Query("limit")
 	if limit == "" {
@@ -83,6 +86,7 @@ func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
+	req.Limit = limitInt
 
 	offset := c.Query("offset")
 	if offset == "" {
@@ -93,14 +97,21 @@ func (h *subscriptionHandler) GetAllSubscriptionsHandler(c *gin.Context) {
 		_ = c.Error(err)
 		return
 	}
+	req.Offset = offsetInt
 
-	req := service.GetAllSubscriptionsRequest{
-		UserID: userID,
-		Limit:  limitInt,
-		Offset: offsetInt,
+	isCancelled := c.Query("is_cancelled")
+	if isCancelled == "" {
+		req.IsCancelled = nil
+	} else {
+		isCancelledBool, err := strconv.ParseBool(isCancelled)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		req.IsCancelled = &isCancelledBool
 	}
 
-	res, err := h.s.GetAllSubscriptions(c.Request.Context(), &req)
+	res, err := h.s.GetAllSubscriptions(c.Request.Context(), req)
 	if err != nil {
 		_ = c.Error(err)
 		return

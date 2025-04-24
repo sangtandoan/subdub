@@ -81,7 +81,7 @@ func (h *authHandler) RegisterHandler(c *gin.Context) {
 func (h *authHandler) LogoutHandler(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
-		_ = c.Error(err)
+		c.JSON(http.StatusOK, response.NewAppResponse("logout ok", nil))
 		return
 	}
 
@@ -110,4 +110,8 @@ func (h *authHandler) TokenRenewHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.NewAppResponse("renew access token ok", res))
+}
+
+func (h *authHandler) VerifyAccessTokenHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, response.NewAppResponse("access token valid", nil))
 }

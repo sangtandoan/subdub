@@ -28,6 +28,34 @@ func NewChrono(repo *repo.Repo, mailer mailer.Mailer) *chrono {
 	return &chrono{subscriptionRepo: repo.Subscription, userRepo: repo.User, mailer: mailer}
 }
 
+func (c *chrono) ScheduleDailyTask(targetHour, targetMinute int) {
+	// schedule daily excute at specify hour and minute
+	for {
+		now := time.Now()
+		targetTime := time.Date(
+			now.Year(),
+			now.Month(),
+			now.Day(),
+			targetHour,
+			targetMinute,
+			0,
+			0,
+			now.Location(),
+		)
+
+		if targetTime.Before(now) {
+			targetTime = targetTime.AddDate(0, 0, 1)
+		}
+
+		waitDuration := targetTime.Sub(now)
+		fmt.Println(waitDuration)
+		time.Sleep(waitDuration)
+
+		c.CheckSubscriptionsDailyToSendEmail()
+		c.CheckSubscriptionsDailyToUpdateStartDate()
+	}
+}
+
 func (c *chrono) CheckSubscriptionsDailyToSendEmail() {
 	errsCh := make(chan error, len(days))
 
@@ -195,33 +223,5 @@ func (c *chrono) sendEmail(
 		}
 
 		done <- 1
-	}
-}
-
-func (c *chrono) ScheduleDailyTask(targetHour, targetMinute int) {
-	// schedule daily excute at specify hour and minute
-	for {
-		now := time.Now()
-		targetTime := time.Date(
-			now.Year(),
-			now.Month(),
-			now.Day(),
-			targetHour,
-			targetMinute,
-			0,
-			0,
-			now.Location(),
-		)
-
-		if targetTime.Before(now) {
-			targetTime = targetTime.AddDate(0, 0, 1)
-		}
-
-		waitDuration := targetTime.Sub(now)
-		fmt.Println(waitDuration)
-		time.Sleep(waitDuration)
-
-		// c.CheckSubscriptionsDailyToSendEmail()
-		c.CheckSubscriptionsDailyToUpdateStartDate()
 	}
 }

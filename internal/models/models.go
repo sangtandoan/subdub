@@ -26,7 +26,8 @@ type Subscription struct {
 	// to and from a string, but swagger does not see this so we need to specify it in struct tag swaggertype.
 	//
 	// enums struct tag also helps us to document the enum values in swagger
-	Duration enums.Duration `json:"duration,omitempty" swaggertype:"string" enums:"weekly, monthly, 6 months, yearly"`
+	Duration    enums.Duration `json:"duration,omitempty" swaggertype:"string" enums:"weekly, monthly, 6 months, yearly"`
+	IsCancelled bool           `json:"is_cancelled"`
 }
 
 type Session struct {

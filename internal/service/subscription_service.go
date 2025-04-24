@@ -57,9 +57,10 @@ func (s *subscriptionService) GetSubscriptionsBeforeNumDays(
 }
 
 type GetAllSubscriptionsRequest struct {
-	UserID uuid.UUID
-	Offset int
-	Limit  int
+	IsCancelled *bool
+	UserID      uuid.UUID
+	Offset      int
+	Limit       int
 }
 
 type GetAllSubscriptionsResponse struct {
@@ -72,9 +73,10 @@ func (s *subscriptionService) GetAllSubscriptions(
 	req *GetAllSubscriptionsRequest,
 ) (*GetAllSubscriptionsResponse, error) {
 	arg := repo.GetAllSubscriptionsParams{
-		UserID: req.UserID,
-		Limit:  req.Limit,
-		Offset: req.Offset,
+		UserID:      req.UserID,
+		Limit:       req.Limit,
+		Offset:      req.Offset,
+		IsCancelled: req.IsCancelled,
 	}
 
 	res, count, err := s.repo.GetAllSubscriptions(ctx, &arg)
@@ -100,10 +102,11 @@ func (s *subscriptionService) GetAllSubscriptions(
 }
 
 type CreateSubscriptionRequest struct {
-	StartDate models.SubscriptionTime `json:"start_date"         validate:"required"`
-	Name      string                  `json:"name,omitempty"     validate:"required,min=3,max=20"`
-	UserID    uuid.UUID               `json:"-"                  validate:"-"`
-	Duration  enums.Duration          `json:"duration,omitempty" validate:"required"              enums:"weekly, monthly, 6 months, yearly" swaggertype:"string"`
+	StartDate models.SubscriptionTime `json:"start_date" validate:"required"`
+	Name      string                  `json:"name"       validate:"required,min=3,max=50"`
+	UserID    uuid.UUID               `json:"-"          validate:"-"`
+	// TODO: add validation for enum duration
+	Duration enums.Duration `json:"duration"   validate:"required"              enums:"weekly, monthly, 6 months, yearly" swaggertype:"string"`
 }
 
 func (s *subscriptionService) CreateSubscription(

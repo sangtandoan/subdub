@@ -74,6 +74,7 @@ func FillSubscriptions() {
 	duration := randomDuration()
 	endDate := calculateEndDate(startDate, duration)
 	name := randomName()
+	isCancelled := randomBool()
 
 	id, err := uuid.NewUUID()
 	if err != nil {
@@ -83,11 +84,11 @@ func FillSubscriptions() {
 
 	query := `
 		INSERT INTO 
-		subscriptions (id, user_id, name, start_date, end_date, duration) 
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, user_id, name, start_date, end_date, duration
+		subscriptions (id, user_id, name, start_date, end_date, duration, is_cancelled) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, user_id, name, start_date, end_date, duration, is_cancelled
 	`
-	userID := "87fab786-1cd8-11f0-8d6b-902e1685779a"
+	userID := "676ead13-20d9-11f0-95a9-902e1685779a"
 	userIDUUID, _ := uuid.Parse(userID)
 
 	row := db.QueryRowContext(
@@ -99,6 +100,7 @@ func FillSubscriptions() {
 		time.Time(startDate),
 		endDate,
 		duration.String(),
+		isCancelled,
 	)
 
 	var subcription repo.SubscriptionRow
@@ -109,6 +111,7 @@ func FillSubscriptions() {
 		&subcription.StartDate,
 		&subcription.EndDate,
 		&subcription.Duration,
+		&subcription.IsCancelled,
 	)
 	if err != nil {
 		fmt.Printf("Error inserting subscription: %v\n", err)
@@ -166,4 +169,8 @@ func calculateEndDate(
 	duration enums.Duration,
 ) time.Time {
 	return duration.AddDurationToTime(time.Time(startDate))
+}
+
+func randomBool() bool {
+	return rand.Intn(2) == 0
 }

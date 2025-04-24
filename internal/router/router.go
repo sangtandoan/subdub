@@ -69,8 +69,9 @@ func (r *router) setupAuthRoutes(group *gin.RouterGroup) {
 
 	auth.POST("/login", r.handler.Auth.LoginHandler)
 	auth.POST("/register", r.handler.Auth.RegisterHandler)
-	auth.POST("/logout", r.handler.Auth.LogoutHandler)
+	auth.POST("/logout", middlewares.AuthMiddleware(r.auth), r.handler.Auth.LogoutHandler)
 	auth.POST("/renew", r.handler.Auth.TokenRenewHandler)
+	auth.GET("/verify", middlewares.AuthMiddleware(r.auth), r.handler.Auth.VerifyAccessTokenHandler)
 }
 
 func (r *router) setupOAuthRoutes(group *gin.RouterGroup) {

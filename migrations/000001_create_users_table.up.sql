@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     start_date timestamp NOT NULL,
     end_date timestamp NOT NULL,
     duration duration NOT NULL,
+    is_cancelled boolean DEFAULT false,
 
     FOREIGN KEY (user_id) REFERENCES users (id)
 );

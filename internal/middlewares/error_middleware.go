@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"compress/gzip"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,8 @@ func ErrorMiddleware(c *gin.Context) {
 			default:
 				appError = handleDefaultError(e)
 			}
+
+			fmt.Println(appError.Msg)
 
 			c.JSON(appError.StatusCode, gin.H{"success": appError.Success, "errors": appError.Msg})
 			return
