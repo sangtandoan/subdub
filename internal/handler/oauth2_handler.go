@@ -26,25 +26,25 @@ func (h *oAuth2Handler) Login(c *gin.Context) {
 
 func (h *oAuth2Handler) SignInWithOAuth(c *gin.Context) {
 	url := h.service.GenerateURL(c.Request.Context())
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	c.JSON(http.StatusOK, response.NewAppResponse("redirect to google", gin.H{"url": url}))
 }
 
 func (h *oAuth2Handler) CallbackHandler(c *gin.Context) {
-	state := c.Query("state")
-	if state == "" {
-		_ = c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
-		return
-	}
+	// state := c.Query("state")
+	// if state == "" {
+	// 	_ = c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
+	// 	return
+	// }
 
 	code := c.Query("code")
-	if state == "" {
+	if code == "" {
 		_ = c.Error(apperror.NewAppError(http.StatusBadRequest, "invalid callback"))
 		return
 	}
 
 	req := &service.CallBackRequest{
-		State: state,
-		Code:  code,
+		// State: state,
+		Code: code,
 	}
 
 	res, err := h.service.Callback(c.Request.Context(), req)

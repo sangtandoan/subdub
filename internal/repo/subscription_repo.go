@@ -100,6 +100,11 @@ func (repo *subscriptionRepo) GetAllSubscriptions(
 		query += " WHERE " + strings.Join(whereClauses, " AND ")
 	}
 
+	// add query userID to query string
+	query += fmt.Sprintf(" AND user_id = $%d", argIndex)
+	args = append(args, arg.UserID)
+	argIndex++
+
 	// add pagination to quer string
 	query += fmt.Sprintf(" ORDER BY start_date ASC LIMIT $%d OFFSET $%d", argIndex, argIndex+1)
 	args = append(args, arg.Limit, arg.Offset)

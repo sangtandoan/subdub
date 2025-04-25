@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/labstack/gommon/log"
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
 	"github.com/sangtandoan/subscription_tracker/internal/models"
 	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
@@ -65,6 +66,7 @@ func (s *authService) Login(ctx context.Context, req *LoginRequest) (*LoginRespo
 	// compare password
 	err = bcrypt.CompareHashAndPassword([]byte(existedUser.Password), []byte(req.Password))
 	if err != nil {
+		log.Info("password not match", " password: ", req.Password)
 		return nil, apperror.ErrUnAuthorized
 	}
 

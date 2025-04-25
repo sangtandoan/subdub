@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sangtandoan/subscription_tracker/internal/authenticator"
-	"github.com/sangtandoan/subscription_tracker/internal/pkg/apperror"
 	"github.com/sangtandoan/subscription_tracker/internal/repo"
 	"golang.org/x/oauth2"
 )
@@ -58,8 +57,8 @@ func (s *googleOAuth2Service) GenerateURL(ctx context.Context) string {
 }
 
 type CallBackRequest struct {
-	State string
-	Code  string
+	// State string
+	Code string
 }
 
 type UserInfoResponse struct {
@@ -72,9 +71,9 @@ func (s *googleOAuth2Service) Callback(
 	ctx context.Context,
 	req *CallBackRequest,
 ) (*LoginResponse, error) {
-	if req.State != s.state {
-		return nil, apperror.NewAppError(http.StatusBadRequest, "invalid state")
-	}
+	// if req.State != s.state {
+	// 	return nil, apperror.NewAppError(http.StatusBadRequest, "invalid state")
+	// }
 
 	token, err := s.config.Exchange(ctx, req.Code)
 	if err != nil {
@@ -98,7 +97,6 @@ func (s *googleOAuth2Service) Callback(
 
 	// checks if email exists, if yes -> link auth_provider entry with user
 	// if no -> create new user and link with auth_provider entry
-
 	existedUser, err := s.userRepo.GetUserByEmail(ctx, userInfo.Email)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
@@ -106,6 +104,7 @@ func (s *googleOAuth2Service) Callback(
 		}
 	}
 
+	// TODO: rethinking about auth_providers and users
 	if err != nil {
 		// user does not exists
 		err = s.tx.WithTx(ctx, func(txContext context.Context) error {
@@ -166,7 +165,6 @@ func (s *googleOAuth2Service) Callback(
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	tokens, err := generateTokens(ctx, s.authenticator, s.sessionRepo, existedUser)

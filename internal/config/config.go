@@ -84,7 +84,7 @@ func LoadConfig() (*Config, error) {
 	googleOAuthConfig := &oauth2.Config{
 		ClientID:     getEnv("GOOGLE_CLIENT", ""),
 		ClientSecret: getEnv("GOOGLE_SECRET", ""),
-		RedirectURL:  "https://subdub-56cd.onrender.com/api/v1/oauth2/callback",
+		RedirectURL:  getEnv("GOOGLE_REDIRECT_URL", ""),
 		Scopes:       []string{"email"},
 		Endpoint:     google.Endpoint,
 	}
