@@ -17,8 +17,6 @@ func ErrorMiddleware(c *gin.Context) {
 	gz, exists := c.Get("gz")
 	if exists {
 		defer gz.(*gzip.Writer).Close()
-	} else {
-		_ = c.Error(apperror.ErrInternalServerError)
 	}
 
 	if len(c.Errors) > 0 {
