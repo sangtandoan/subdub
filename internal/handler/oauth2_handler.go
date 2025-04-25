@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +26,6 @@ func (h *oAuth2Handler) Login(c *gin.Context) {
 
 func (h *oAuth2Handler) SignInWithOAuth(c *gin.Context) {
 	url := h.service.GenerateURL(c.Request.Context())
-	fmt.Println(url)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
