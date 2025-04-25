@@ -32,7 +32,7 @@ func (r *router) Setup() http.Handler {
 	api := g.Group("/api")
 	{
 		api.Use(middlewares.ErrorMiddleware)
-		api.Use(middlewares.CORSMiddleware([]string{"*"}))
+		api.Use(middlewares.CORSMiddleware([]string{"https://subdub-frontend.vercel.app"}))
 		api.Use(middlewares.GZipMiddleware)
 
 		v1 := api.Group("/v1")
