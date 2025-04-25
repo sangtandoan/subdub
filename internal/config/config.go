@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"github.com/labstack/gommon/log"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -51,7 +52,7 @@ func LoadConfig() (*Config, error) {
 	// This function loads environment variables from a .env file
 	err := godotenv.Load()
 	if err != nil {
-		return nil, err
+		log.Warnf("Error loading .env file: %v", err)
 	}
 
 	dbConfig := &DBConfig{
