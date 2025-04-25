@@ -1,6 +1,9 @@
 package middlewares
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/labstack/gommon/log"
+)
 
 func CORSMiddleware(allowedOrigins []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -17,6 +20,7 @@ func CORSMiddleware(allowedOrigins []string) gin.HandlerFunc {
 			}
 		}
 
+		log.Info("CORS Middleware: Allowed Origin:", allowedOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Writer.Header().
@@ -24,6 +28,7 @@ func CORSMiddleware(allowedOrigins []string) gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == "OPTIONS" {
+			log.Info("OPTIONS request received, aborting with 204 No Content")
 			c.AbortWithStatus(204)
 			return
 		}
