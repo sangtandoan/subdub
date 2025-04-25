@@ -27,13 +27,18 @@ func NewRouter(handler *handler.Handler, auth authenticator.Authenticator) *rout
 func (r *router) Setup() http.Handler {
 	g := gin.Default()
 	g.LoadHTMLGlob("templates/*")
+
+	// Need to set up CORS middleware before the routes
+	// or it will not run before checking if the route is valid
+	// and it will return a 404 error instead of a valid OPTIONS request
+	g.Use(middlewares.ErrorMiddleware)
+	g.Use(middlewares.CORSMiddleware([]string{"https://subdub-frontend.vercel.app"}))
+	g.Use(middlewares.GZipMiddleware)
+
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	api := g.Group("/api")
 	{
-		api.Use(middlewares.ErrorMiddleware)
-		api.Use(middlewares.CORSMiddleware([]string{"https://subdub-frontend.vercel.app"}))
-		api.Use(middlewares.GZipMiddleware)
 
 		v1 := api.Group("/v1")
 		{
