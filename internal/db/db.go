@@ -11,16 +11,18 @@ import (
 )
 
 func NewDB(cfg *config.DBConfig) (*sql.DB, error) {
-	connStr := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.Username,
-		cfg.Password,
-		cfg.Host,
-		cfg.Port,
-		cfg.DBName,
-	)
+	if cfg.ConnString == "" {
+		cfg.ConnString = fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			cfg.Username,
+			cfg.Password,
+			cfg.Host,
+			cfg.Port,
+			cfg.DBName,
+		)
+	}
 
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", cfg.ConnString)
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,7 @@ type Config struct {
 }
 
 type DBConfig struct {
+	ConnString      string
 	Host            string
 	Port            string
 	Username        string
@@ -47,12 +48,14 @@ type ServerConfig struct {
 }
 
 func LoadConfig() (*Config, error) {
+	// This function loads environment variables from a .env file
 	err := godotenv.Load()
 	if err != nil {
 		return nil, err
 	}
 
 	dbConfig := &DBConfig{
+		ConnString:      getEnv("DB_CONN_STRING", ""),
 		Host:            getEnv("DB_HOST", "localhost"),
 		Port:            getEnv("DB_PORT", "5432"),
 		Username:        getEnv("DB_USERNAME", "admin"),
