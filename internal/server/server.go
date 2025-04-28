@@ -43,6 +43,7 @@ func (as *AppServer) Run() {
 	fmt.Println("")
 	err := as.ListenAndServe()
 	if err != nil {
+		/// This error is expected when the server is gratefull shutdown
 		if !errors.Is(err, http.ErrServerClosed) {
 			fmt.Printf("server error: %v\n", err)
 			return
