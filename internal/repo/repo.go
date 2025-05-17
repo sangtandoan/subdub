@@ -63,9 +63,7 @@ func (t *transactionManager) WithTx(
 	txContext := context.WithValue(ctx, TxKey{}, tx)
 	err = f(txContext)
 	if err != nil {
-		if err := tx.Rollback(); err != nil {
-			panic(err)
-		}
+		return err
 	}
 
 	return tx.Commit()
