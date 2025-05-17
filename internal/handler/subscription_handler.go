@@ -152,8 +152,8 @@ func (h *subscriptionHandler) CreateSubscriptionHandler(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get(authenticator.SubClaim)
-	if !exists {
+	userID, ok := c.Get(authenticator.SubClaim)
+	if !ok {
 		_ = c.Error(apperror.NewAppError(http.StatusUnauthorized, "can not find userID in context"))
 		return
 	}

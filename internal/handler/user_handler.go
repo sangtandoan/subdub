@@ -42,8 +42,8 @@ func (h *userHandler) GetUserHandler(c *gin.Context) {
 	}
 
 	// get userid from context
-	userIDFromTokenString, exists := c.Get(authenticator.SubClaim)
-	if !exists {
+	userIDFromTokenString, ok := c.Get(authenticator.SubClaim)
+	if !ok {
 		_ = c.Error(apperror.ErrUnAuthorized)
 		return
 	}
