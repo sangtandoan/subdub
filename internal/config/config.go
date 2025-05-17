@@ -102,11 +102,47 @@ func LoadConfig() (*Config, error) {
 	}, nil
 }
 
+type Primitive interface {
+	string | int | bool
+}
+
+// func getEnv[T Primitive](key string, fallback T, converter func(string) T) T {
+// 	value := os.Getenv(key)
+// 	if value == "" {
+// 		return fallback
+// 	}
+//
+// 	return converter(value)
+// }
+//
+// func stringConverter(value string) string {
+// 	return value
+// }
+//
+// func intConverter(value string) int {
+// 	valueAsInt, err := strconv.Atoi(value)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+//
+// 	return valueAsInt
+// }
+
+// func boolConverter(value string) bool {
+// 	valueAsBool, err := strconv.ParseBool(value)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+//
+// 	return valueAsBool
+// }
+
 func getEnv(key string, fallback string) string {
 	value := os.Getenv(key)
 	if value == "" {
 		return fallback
 	}
+
 	return value
 }
 
@@ -133,6 +169,43 @@ func getEnvAsBool(key string, fallback bool) bool {
 	valueAsBool, err := strconv.ParseBool(value)
 	if err != nil {
 		return fallback
+	}
+
+	return valueAsBool
+}
+
+func requireEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("%s env is require", key)
+	}
+
+	return value
+}
+
+func requireEnvAsInt(key string) int {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("%s env is require", key)
+	}
+
+	valueAsInt, err := strconv.Atoi(value)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	return valueAsInt
+}
+
+func requireEnvAsBool(key string) bool {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("%s env is require", key)
+	}
+
+	valueAsBool, err := strconv.ParseBool(value)
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 
 	return valueAsBool
