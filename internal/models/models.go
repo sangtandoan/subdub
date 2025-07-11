@@ -54,7 +54,7 @@ type SubscriptionTime time.Time
 func (st *SubscriptionTime) UnmarshalJSON(b []byte) error {
 	s := string(b)
 
-	// get rid of "" b/c the string will contains this
+	// get rid of "" b/c the string will contain this
 	s = strings.Trim(s, `"`)
 
 	// string -> time : time.Parse

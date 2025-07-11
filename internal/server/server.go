@@ -44,7 +44,7 @@ func (as *AppServer) Run() {
 			shutdown <- err
 		}
 
-		// Call Wai() to block until our WaitGroup counter is zero --- essentially
+		// Call Wait() to block until our WaitGroup counter is zero --- essentially
 		// blocking until all background tasks are done. Then we return nil on
 		// the shutdown channel to indicate that the server has shut down gracefully.
 		as.background.Wg.Wait()
